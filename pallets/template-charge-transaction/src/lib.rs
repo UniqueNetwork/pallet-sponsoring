@@ -12,22 +12,22 @@ pub use std::*;
 pub use serde::*;
 
 use codec::{Decode, Encode};
-use frame_support::traits::Get;
 use frame_support::{
 	decl_module, decl_storage,
-	weights::{DispatchInfo, PostDispatchInfo, DispatchClass},
+	traits::Get,
+	weights::{DispatchClass, DispatchInfo, PostDispatchInfo},
 };
+use pallet_transaction_payment::OnChargeTransaction;
 use sp_runtime::{
 	traits::{
-		DispatchInfoOf, Dispatchable, PostDispatchInfoOf, Saturating, SaturatedConversion,
+		DispatchInfoOf, Dispatchable, PostDispatchInfoOf, SaturatedConversion, Saturating,
 		SignedExtension, Zero,
 	},
 	transaction_validity::{
 		TransactionPriority, TransactionValidity, TransactionValidityError, ValidTransaction,
 	},
-	FixedPointOperand, DispatchResult,
+	DispatchResult, FixedPointOperand,
 };
-use pallet_transaction_payment::OnChargeTransaction;
 use sp_std::prelude::*;
 
 pub trait Config: frame_system::Config + pallet_custom_transaction_payment::Config {}
@@ -87,12 +87,9 @@ where
 		let weight_saturation = T::BlockWeights::get().max_block / info.weight.max(1);
 		let max_block_length = *T::BlockLength::get().max.get(DispatchClass::Normal);
 		let len_saturation = max_block_length as u64 / (len as u64).max(1);
-		let coefficient: BalanceOf<T> = weight_saturation
-			.min(len_saturation)
-			.saturated_into::<BalanceOf<T>>();
-		final_fee
-			.saturating_mul(coefficient)
-			.saturated_into::<TransactionPriority>()
+		let coefficient: BalanceOf<T> =
+			weight_saturation.min(len_saturation).saturated_into::<BalanceOf<T>>();
+		final_fee.saturating_mul(coefficient).saturated_into::<TransactionPriority>()
 	}
 
 	#[allow(clippy::type_complexity)]
@@ -159,10 +156,7 @@ where
 		len: usize,
 	) -> TransactionValidity {
 		let (fee, _) = self.withdraw_fee(who, call, info, len)?;
-		Ok(ValidTransaction {
-			priority: Self::get_priority(len, info, fee),
-			..Default::default()
-		})
+		Ok(ValidTransaction { priority: Self::get_priority(len, info, fee), ..Default::default() })
 	}
 
 	fn pre_dispatch(

@@ -35,14 +35,14 @@ pub use frame_support::{
 };
 pub use pallet_balances::Call as BalancesCall;
 pub use pallet_timestamp::Call as TimestampCall;
-pub use sponsorship_primitives::SponsoringResolve;
-pub use pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment, CurrencyAdapter, FeeDetails, RuntimeDispatchInfo};
+pub use pallet_transaction_payment::{
+	CurrencyAdapter, FeeDetails, Multiplier, RuntimeDispatchInfo, TargetedFeeAdjustment,
+};
+use sp_runtime::traits::Dispatchable;
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
-use sp_runtime::{
-	traits::{Dispatchable},
-};
+pub use sponsorship_primitives::SponsoringResolve;
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -284,9 +284,7 @@ impl SponsoringResolve<AccountId, Call> for Sponsoring {
 	}
 }
 
-type SponsorshipHandler = (
-	pallet_template::NftSponsorshipHandler<Runtime>,
-);
+type SponsorshipHandler = (pallet_template::NftSponsorshipHandler<Runtime>,);
 
 impl pallet_custom_transaction_payment::Config for Runtime {
 	type SponsorshipHandler = SponsorshipHandler;
@@ -333,7 +331,8 @@ pub type SignedExtra = (
 	frame_system::CheckEra<Runtime>,
 	frame_system::CheckNonce<Runtime>,
 	frame_system::CheckWeight<Runtime>,
-	// Use own signed extension instead pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
+	// Use own signed extension instead
+	// pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
 	pallet_template_charge_transaction::ChargeTransactionPayment<Runtime>,
 );
 /// Unchecked extrinsic type as expected by this runtime.

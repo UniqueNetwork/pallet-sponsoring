@@ -31,6 +31,8 @@ cargo run --release -- --dev --tmp
 
 ### Build
 
+Recomended toolchain nightly-2021-06-28
+
 The `cargo run` command will perform an initial build. Use the following command to build the node
 without launching it:
 

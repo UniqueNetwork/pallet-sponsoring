@@ -70,7 +70,11 @@ pub mod pallet {
 		/// storage and emits an event. This function must be dispatched by a signed extrinsic.
 		#[allow(unused_variables)]
 		#[pallet::weight(10_000 + T::DbWeight::get().writes(1))]
-		pub fn do_something(origin: OriginFor<T>, something: u32, who_will_pay: T::AccountId) -> DispatchResult {
+		pub fn do_something(
+			origin: OriginFor<T>,
+			something: u32,
+			who_will_pay: T::AccountId,
+		) -> DispatchResult {
 			// Check that the extrinsic was signed and get the signer.
 			// This function will return an error if the extrinsic is not signed.
 			// https://substrate.dev/docs/en/knowledgebase/runtime/origin
