@@ -1,6 +1,6 @@
 [package]
 authors = ['Substrate DevHub <https://github.com/substrate-developer-hub>']
-description = 'Unqiue pallet nft specific transaction payment'
+description = 'Unique pallet nft specific transaction payment'
 edition = '2018'
 homepage = 'https://substrate.io'
 license = 'Unlicense'
