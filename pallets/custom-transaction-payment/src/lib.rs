@@ -13,7 +13,7 @@ pub use serde::*;
 
 use frame_support::{decl_module, decl_storage};
 use sp_std::prelude::*;
-use sponsorship_primitives::SponsorshipHandler;
+use up_sponsorship::SponsorshipHandler;
 
 pub trait Config: frame_system::Config + pallet_transaction_payment::Config {
 	type SponsorshipHandler: SponsorshipHandler<Self::AccountId, Self::Call>;

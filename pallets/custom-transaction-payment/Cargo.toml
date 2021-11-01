@@ -29,7 +29,7 @@ sp-core = { default-features = false, version = '4.0.0-dev', git = 'https://gith
 sp-io = { default-features = false, version = '4.0.0-dev', git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.10' }
 sp-runtime = { default-features = false, version = '4.0.0-dev', git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.10' }
 
-sponsorship-primitives = { default-features = false, path = "../../pallets/sponsorship-primitives", version = "0.1.0" }
+up-sponsorship = { default-features = false, path = "../../primitives/up-sponsorship", version = "0.1.0" }
 
 [features]
 default = ['std']
@@ -45,6 +45,6 @@ std = [
     'sp-runtime/std',
     'frame-benchmarking/std',
 
-    'sponsorship-primitives/std',
+    'up-sponsorship/std',
 ]
 runtime-benchmarks = ["frame-benchmarking"]

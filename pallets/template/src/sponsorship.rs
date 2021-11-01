@@ -1,7 +1,7 @@
 use crate::{Call, Config};
 use core::marker::PhantomData;
 use frame_support::traits::IsSubType;
-use sponsorship_primitives::SponsorshipHandler;
+use up_sponsorship::SponsorshipHandler;
 // use nft_data_structs::{
 // 	TokenId, CollectionId, NFT_SPONSOR_TRANSFER_TIMEOUT, REFUNGIBLE_SPONSOR_TRANSFER_TIMEOUT,
 // 	FUNGIBLE_SPONSOR_TRANSFER_TIMEOUT,

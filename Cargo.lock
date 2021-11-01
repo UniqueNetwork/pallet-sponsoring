@@ -3790,8 +3790,8 @@ dependencies = [
  "sp-std",
  "sp-transaction-pool",
  "sp-version",
- "sponsorship-primitives",
  "substrate-wasm-builder",
+ "up-sponsorship",
 ]
 
 [[package]]
@@ -4001,7 +4001,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
- "sponsorship-primitives",
+ "up-sponsorship",
 ]
 
 [[package]]
@@ -4083,7 +4083,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sponsorship-primitives",
+ "up-sponsorship",
 ]
 
 [[package]]
@@ -7069,13 +7069,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
 
 [[package]]
-name = "sponsorship-primitives"
-version = "0.1.0"
-dependencies = [
- "impl-trait-for-tuples",
-]
-
-[[package]]
 name = "stable_deref_trait"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7976,6 +7969,13 @@ name = "untrusted"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a156c684c91ea7d62626509bce3cb4e1d9ed5c4d978f7b4352658f96a4c26b4a"
+
+[[package]]
+name = "up-sponsorship"
+version = "0.1.0"
+dependencies = [
+ "impl-trait-for-tuples",
+]
 
 [[package]]
 name = "url"

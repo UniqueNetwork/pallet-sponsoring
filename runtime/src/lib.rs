@@ -42,7 +42,7 @@ use sp_runtime::traits::Dispatchable;
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
-pub use sponsorship_primitives::SponsoringResolve;
+pub use up_sponsorship::SponsoringResolve;
 
 /// An index to a block.
 pub type BlockNumber = u32;

@@ -182,7 +182,7 @@ version = '4.0.0-dev'
 
 [dependencies]
 pallet-custom-transaction-payment = { path = '../pallets/custom-transaction-payment', default-features = false, version = '3.0.0' }
-sponsorship-primitives = { path = '../pallets/sponsorship-primitives', default-features = false, version = "0.1.0" }
+up-sponsorship = { path = '../primitives/up-sponsorship', default-features = false, version = "0.1.0" }
 pallet-template-charge-transaction = { path = '../pallets/template-charge-transaction', default-features = false, version = '3.0.0' }
 
 [features]
@@ -215,7 +215,7 @@ std = [
     'pallet-transaction-payment/std',
     'pallet-template-charge-transaction/std',
     'pallet-custom-transaction-payment/std',
-    'sponsorship-primitives/std',
+    'up-sponsorship/std',
     'sp-api/std',
     'sp-block-builder/std',
     'sp-consensus-aura/std',
