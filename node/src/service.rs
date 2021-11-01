@@ -3,8 +3,7 @@
 use node_template_runtime::{self, opaque::Block, RuntimeApi};
 use sc_client_api::{ExecutorProvider, RemoteBackend};
 use sc_consensus_aura::{ImportQueueParams, SlotProportion, StartAuraParams};
-use sc_executor::native_executor_instance;
-pub use sc_executor::NativeExecutor;
+pub use sc_executor::NativeElseWasmExecutor;
 use sc_finality_grandpa::SharedVoterState;
 use sc_keystore::LocalKeystore;
 use sc_service::{error::Error as ServiceError, Configuration, TaskManager};
@@ -14,31 +13,27 @@ use sp_consensus_aura::sr25519::AuthorityPair as AuraPair;
 use std::{sync::Arc, time::Duration};
 
 // Our native executor instance.
-native_executor_instance!(
-	pub Executor,
-	node_template_runtime::api::dispatch,
-	node_template_runtime::native_version,
-	frame_benchmarking::benchmarking::HostFunctions,
-);
+pub struct ExecutorDispatch;
 
-type FullClient = sc_service::TFullClient<Block, RuntimeApi, Executor>;
+impl sc_executor::NativeExecutionDispatch for ExecutorDispatch {
+	/// Only enable the benchmarking host functions when we actually want to benchmark.
+	#[cfg(feature = "runtime-benchmarks")]
+	type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
+	/// Otherwise we only use the default Substrate host functions.
+	#[cfg(not(feature = "runtime-benchmarks"))]
+	type ExtendHostFunctions = ();
 
-// pub struct ExecutorDispatch;
+	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
+		node_template_runtime::api::dispatch(method, data)
+	}
 
-// impl sc_executor::NativeExecutionDispatch for ExecutorDispatch {
-// 	type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
+	fn native_version() -> sc_executor::NativeVersion {
+		node_template_runtime::native_version()
+	}
+}
 
-// 	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-// 		nft_runtime::api::dispatch(method, data)
-// 	}
-
-// 	fn native_version() -> sc_executor::NativeVersion {
-// 		nft_runtime::native_version()
-// 	}
-// }
-
-// type FullClient =
-// 	sc_service::TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<ExecutorDispatch>>;
+type FullClient =
+	sc_service::TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<ExecutorDispatch>>;
 type FullBackend = sc_service::TFullBackend<Block>;
 type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
 
@@ -79,16 +74,17 @@ pub fn new_partial(
 		})
 		.transpose()?;
 
-	// let executor = NativeElseWasmExecutor::<ExecutorDispatch>::new(
-	// 	config.wasm_method,
-	// 	config.default_heap_pages,
-	// 	config.max_runtime_instances,
-	// );
+	let executor = NativeElseWasmExecutor::<ExecutorDispatch>::new(
+		config.wasm_method,
+		config.default_heap_pages,
+		config.max_runtime_instances,
+	);
 
 	let (client, backend, keystore_container, task_manager) =
-		sc_service::new_full_parts::<Block, RuntimeApi, Executor>(
+		sc_service::new_full_parts::<Block, RuntimeApi, _>(
 			&config,
 			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
+			executor,
 		)?;
 	let client = Arc::new(client);
 
@@ -144,11 +140,11 @@ pub fn new_partial(
 	Ok(sc_service::PartialComponents {
 		client,
 		backend,
-		select_chain,
-		import_queue,
-		transaction_pool,
 		task_manager,
+		import_queue,
 		keystore_container,
+		select_chain,
+		transaction_pool,
 		other: (grandpa_block_import, grandpa_link, telemetry),
 	})
 }
@@ -162,7 +158,6 @@ fn remote_keystore(_url: &String) -> Result<Arc<LocalKeystore>, &'static str> {
 
 /// Builds a new service for a full client.
 pub fn new_full(mut config: Configuration) -> Result<TaskManager, ServiceError> {
-	let params = new_partial(&config)?;
 	let sc_service::PartialComponents {
 		client,
 		backend,
@@ -172,7 +167,7 @@ pub fn new_full(mut config: Configuration) -> Result<TaskManager, ServiceError> 
 		select_chain,
 		transaction_pool,
 		other: (block_import, grandpa_link, mut telemetry),
-	} = params;
+	} = new_partial(&config)?;
 
 	if let Some(url) = &config.keystore_remote {
 		match remote_keystore(url) {
@@ -186,10 +181,11 @@ pub fn new_full(mut config: Configuration) -> Result<TaskManager, ServiceError> 
 	}
 
 	config.network.extra_sets.push(sc_finality_grandpa::grandpa_peers_set_config());
-	// let warp_sync = Arc::new(sc_finality_grandpa::warp_proof::NetworkProvider::new(
-	// 	backend.clone(),
-	// 	grandpa_link.shared_authority_set().clone(),
-	// ));
+	let warp_sync = Arc::new(sc_finality_grandpa::warp_proof::NetworkProvider::new(
+		backend.clone(),
+		grandpa_link.shared_authority_set().clone(),
+		Vec::new(),
+	));
 
 	let (network, system_rpc_tx, network_starter) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
@@ -200,7 +196,7 @@ pub fn new_full(mut config: Configuration) -> Result<TaskManager, ServiceError> 
 			import_queue,
 			on_demand: None,
 			block_announce_validator_builder: None,
-			warp_sync: None,
+			warp_sync: Some(warp_sync),
 		})?;
 
 	if config.offchain_worker.enabled {
@@ -219,18 +215,17 @@ pub fn new_full(mut config: Configuration) -> Result<TaskManager, ServiceError> 
 	let enable_grandpa = !config.disable_grandpa;
 	let prometheus_registry = config.prometheus_registry().cloned();
 
-	let rpc_client = client.clone();
-	let rpc_pool = transaction_pool.clone();
+	let rpc_extensions_builder = {
+		let client = client.clone();
+		let pool = transaction_pool.clone();
 
-	let rpc_extensions_builder = Box::new(move |deny_unsafe, _| {
-		let full_deps = crate::rpc::FullDeps {
-			deny_unsafe,
-			client: rpc_client.clone(),
-			pool: rpc_pool.clone(),
-		};
+		Box::new(move |deny_unsafe, _| {
+			let deps =
+				crate::rpc::FullDeps { client: client.clone(), pool: pool.clone(), deny_unsafe };
 
-		Ok(crate::rpc::create_full::<_, _>(full_deps))
-	});
+			Ok(crate::rpc::create_full(deps))
+		})
+	};
 
 	let _rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		network: network.clone(),
@@ -355,16 +350,17 @@ pub fn new_light(mut config: Configuration) -> Result<TaskManager, ServiceError>
 		})
 		.transpose()?;
 
-	// let executor = NativeElseWasmExecutor::<ExecutorDispatch>::new(
-	// 	config.wasm_method,
-	// 	config.default_heap_pages,
-	// 	config.max_runtime_instances,
-	// );
+	let executor = NativeElseWasmExecutor::<ExecutorDispatch>::new(
+		config.wasm_method,
+		config.default_heap_pages,
+		config.max_runtime_instances,
+	);
 
 	let (client, backend, keystore_container, mut task_manager, on_demand) =
-		sc_service::new_light_parts::<Block, RuntimeApi, Executor>(
+		sc_service::new_light_parts::<Block, RuntimeApi, _>(
 			&config,
 			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
+			executor,
 		)?;
 
 	let mut telemetry = telemetry.map(|(worker, telemetry)| {
@@ -416,10 +412,11 @@ pub fn new_light(mut config: Configuration) -> Result<TaskManager, ServiceError>
 			telemetry: telemetry.as_ref().map(|x| x.handle()),
 		})?;
 
-	// let warp_sync = Arc::new(sc_finality_grandpa::warp_proof::NetworkProvider::new(
-	// 	backend.clone(),
-	// 	grandpa_link.shared_authority_set().clone(),
-	// ));
+	let warp_sync = Arc::new(sc_finality_grandpa::warp_proof::NetworkProvider::new(
+		backend.clone(),
+		grandpa_link.shared_authority_set().clone(),
+		Vec::new(),
+	));
 
 	let (network, system_rpc_tx, network_starter) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
@@ -430,7 +427,7 @@ pub fn new_light(mut config: Configuration) -> Result<TaskManager, ServiceError>
 			import_queue,
 			on_demand: Some(on_demand.clone()),
 			block_announce_validator_builder: None,
-			warp_sync: None,
+			warp_sync: Some(warp_sync),
 		})?;
 
 	if config.offchain_worker.enabled {

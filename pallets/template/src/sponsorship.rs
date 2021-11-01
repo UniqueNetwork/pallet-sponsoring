@@ -27,7 +27,7 @@ where
 {
 	fn get_sponsor(who: &T::AccountId, call: &C) -> Option<T::AccountId> {
 		match IsSubType::<Call<T>>::is_sub_type(call)? {
-			Call::do_something(something, who_will_pay) =>
+			Call::do_something { something, who_will_pay } =>
 				Self::withdraw(who, something, who_will_pay),
 			_ => None,
 		}

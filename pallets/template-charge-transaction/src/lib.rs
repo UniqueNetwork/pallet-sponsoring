@@ -17,6 +17,7 @@ use frame_support::{
 	traits::Get,
 	weights::{DispatchClass, DispatchInfo, PostDispatchInfo},
 };
+use scale_info::TypeInfo;
 use pallet_transaction_payment::OnChargeTransaction;
 use sp_runtime::{
 	traits::{
@@ -49,7 +50,7 @@ type BalanceOf<T> = <<T as pallet_transaction_payment::Config>::OnChargeTransact
 
 /// Require the transactor pay for themselves and maybe include a tip to gain additional priority
 /// in the queue.
-#[derive(Encode, Decode, Clone, Eq, PartialEq)]
+#[derive(Encode, Decode, Clone, Eq, PartialEq, TypeInfo)]
 pub struct ChargeTransactionPayment<T: Config>(#[codec(compact)] BalanceOf<T>);
 
 impl<T: Config + Send + Sync> sp_std::fmt::Debug for ChargeTransactionPayment<T> {
@@ -127,7 +128,7 @@ where
 	}
 }
 
-impl<T: Config + Send + Sync> SignedExtension for ChargeTransactionPayment<T>
+impl<T: Config + Send + Sync + TypeInfo> SignedExtension for ChargeTransactionPayment<T>
 where
 	BalanceOf<T>: Send + Sync + From<u64> + FixedPointOperand,
 	T::Call: Dispatchable<Info = DispatchInfo, PostInfo = PostDispatchInfo>,
