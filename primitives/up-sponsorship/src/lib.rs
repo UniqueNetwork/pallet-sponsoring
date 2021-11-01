@@ -1,9 +1,5 @@
 #![no_std]
 
-pub trait SponsoringResolve<AccountId, Call> {
-	fn resolve(who: &AccountId, call: &Call) -> Option<AccountId>;
-}
-
 pub trait SponsorshipHandler<AccountId, Call> {
 	fn get_sponsor(who: &AccountId, call: &Call) -> Option<AccountId>;
 }

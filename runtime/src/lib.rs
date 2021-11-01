@@ -42,7 +42,6 @@ use sp_runtime::traits::Dispatchable;
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
-pub use up_sponsorship::SponsoringResolve;
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -280,25 +279,9 @@ impl pallet_template::Config for Runtime {
 	type Event = Event;
 }
 
-/// Sponsoring pallets implementation
-pub struct Sponsoring;
-impl SponsoringResolve<AccountId, Call> for Sponsoring {
-	fn resolve(who: &AccountId, call: &Call) -> Option<AccountId>
-	where
-		Call: Dispatchable<Info = DispatchInfo>,
-		AccountId: AsRef<[u8]>,
-	{
-		pallet_custom_transaction_payment::Module::<Runtime>::withdraw_type(who, call)
-	}
+impl pallet_template_charge_transaction::Config for Runtime {
+	type SponsorshipHandler = pallet_template::NftSponsorshipHandler<Runtime>;
 }
-
-type SponsorshipHandler = (pallet_template::NftSponsorshipHandler<Runtime>,);
-
-impl pallet_custom_transaction_payment::Config for Runtime {
-	type SponsorshipHandler = SponsorshipHandler;
-}
-
-impl pallet_template_charge_transaction::Config for Runtime {}
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
@@ -317,7 +300,6 @@ construct_runtime!(
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
 
 		// Pallets for sponsoring
-		CustomPayment: pallet_custom_transaction_payment::{Pallet, Call, Storage },
 		Charging: pallet_template_charge_transaction::{Pallet, Call, Storage },
 
 		// Include the custom logic from the pallet-template in the runtime.

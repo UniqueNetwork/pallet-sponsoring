@@ -31,7 +31,8 @@ sp-core = { default-features = false, version = '4.0.0-dev', git = 'https://gith
 sp-io = { default-features = false, version = '4.0.0-dev', git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.12' }
 sp-runtime = { default-features = false, version = '4.0.0-dev', git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.12' }
 
-pallet-custom-transaction-payment = { default-features = false, path = "../custom-transaction-payment" }
+# pallet-custom-transaction-payment = { default-features = false, path = "../custom-transaction-payment" }
+up-sponsorship = { default-features = false, path = "../../primitives/up-sponsorship", version = "0.1.0" }
 
 [features]
 default = ['std']
@@ -42,7 +43,7 @@ std = [
     'frame-system/std',
     'pallet-balances/std',
     'pallet-transaction-payment/std',
-    'pallet-custom-transaction-payment/std',
+    # 'pallet-custom-transaction-payment/std',
     'sp-std/std',
     'sp-runtime/std',
     'frame-benchmarking/std',

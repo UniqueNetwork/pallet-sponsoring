@@ -30,8 +30,12 @@ use sp_runtime::{
 	DispatchResult, FixedPointOperand,
 };
 use sp_std::prelude::*;
+use up_sponsorship::SponsorshipHandler;
 
-pub trait Config: frame_system::Config + pallet_custom_transaction_payment::Config {}
+// + pallet_custom_transaction_payment::Config
+pub trait Config: frame_system::Config + pallet_transaction_payment::Config  {
+	type SponsorshipHandler: SponsorshipHandler<Self::AccountId, Self::Call>;
+}
 
 decl_storage! {
 	trait Store for Module<T: Config> as NftTransactionPayment
@@ -119,7 +123,7 @@ where
 
 		// Determine who is paying transaction fee based on ecnomic model
 		// Parse call to extract collection ID and access collection sponsor
-		let sponsor = <pallet_custom_transaction_payment::Module<T>>::withdraw_type(who, call);
+		let sponsor = T::SponsorshipHandler::get_sponsor(who, call);
 
 		let who_pays_fee = sponsor.unwrap_or_else(|| who.clone());
 

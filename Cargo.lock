@@ -3530,7 +3530,6 @@ dependencies = [
  "hex-literal",
  "pallet-aura",
  "pallet-balances",
- "pallet-custom-transaction-payment",
  "pallet-grandpa",
  "pallet-randomness-collective-flip",
  "pallet-sudo",
@@ -3762,24 +3761,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-custom-transaction-payment"
-version = "3.0.0"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "pallet-transaction-payment",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "up-sponsorship",
-]
-
-[[package]]
 name = "pallet-grandpa"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.12#d76f39995315ec36980908e4b99709bd14927044"
@@ -3874,7 +3855,6 @@ dependencies = [
  "frame-support",
  "frame-system",
  "pallet-balances",
- "pallet-custom-transaction-payment",
  "pallet-transaction-payment",
  "parity-scale-codec",
  "scale-info",
@@ -3883,6 +3863,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
+ "up-sponsorship",
 ]
 
 [[package]]
