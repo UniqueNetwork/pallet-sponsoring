@@ -185,8 +185,8 @@ branch = 'polkadot-v0.9.12'
 
 [dependencies]
 # pallet-custom-transaction-payment = { path = '../pallets/custom-transaction-payment', default-features = false, version = '3.0.0' }
-up-sponsorship = { path = '../primitives/up-sponsorship', default-features = false, version = "0.1.0" }
-pallet-template-charge-transaction = { path = '../pallets/template-charge-transaction', default-features = false, version = '3.0.0' }
+up-sponsorship = { path = '../primitives/sponsorship', default-features = false, version = "0.1.0" }
+pallet-template-transaction-payment = { path = '../pallets/template-transaction-payment', default-features = false, version = '3.0.0' }
 
 [features]
 default = ['std']
@@ -216,8 +216,7 @@ std = [
     'pallet-timestamp/std',
     'pallet-transaction-payment-rpc-runtime-api/std',
     'pallet-transaction-payment/std',
-    'pallet-template-charge-transaction/std',
-    #'pallet-custom-transaction-payment/std',
+    'pallet-template-transaction-payment/std',
     'up-sponsorship/std',
     'sp-api/std',
     'sp-block-builder/std',

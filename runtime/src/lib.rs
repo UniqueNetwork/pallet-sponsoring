@@ -279,7 +279,7 @@ impl pallet_template::Config for Runtime {
 	type Event = Event;
 }
 
-impl pallet_template_charge_transaction::Config for Runtime {
+impl pallet_template_transaction_payment::Config for Runtime {
 	type SponsorshipHandler = pallet_template::NftSponsorshipHandler<Runtime>;
 }
 
@@ -300,7 +300,7 @@ construct_runtime!(
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
 
 		// Pallets for sponsoring
-		Charging: pallet_template_charge_transaction::{Pallet, Call, Storage },
+		Charging: pallet_template_transaction_payment::{Pallet, Call, Storage },
 
 		// Include the custom logic from the pallet-template in the runtime.
 		TemplateModule: pallet_template::{Pallet, Call, Storage, Event<T>},
@@ -323,7 +323,7 @@ pub type SignedExtra = (
 	frame_system::CheckWeight<Runtime>,
 	// Use own signed extension instead
 	// pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
-	pallet_template_charge_transaction::ChargeTransactionPayment<Runtime>,
+	pallet_template_transaction_payment::ChargeTransactionPayment<Runtime>,
 );
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic = generic::UncheckedExtrinsic<Address, Call, Signature, SignedExtra>;

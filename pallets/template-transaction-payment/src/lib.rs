@@ -32,7 +32,6 @@ use sp_runtime::{
 use sp_std::prelude::*;
 use up_sponsorship::SponsorshipHandler;
 
-// + pallet_custom_transaction_payment::Config
 pub trait Config: frame_system::Config + pallet_transaction_payment::Config  {
 	type SponsorshipHandler: SponsorshipHandler<Self::AccountId, Self::Call>;
 }

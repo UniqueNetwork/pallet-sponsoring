@@ -6,5 +6,5 @@ resolver = "2"
 members = [
     'node',
     'pallets/*',
-    'runtime',
+    'runtime'
 ]

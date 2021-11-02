@@ -3534,7 +3534,7 @@ dependencies = [
  "pallet-randomness-collective-flip",
  "pallet-sudo",
  "pallet-template",
- "pallet-template-charge-transaction",
+ "pallet-template-transaction-payment",
  "pallet-timestamp",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
@@ -3848,7 +3848,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-template-charge-transaction"
+name = "pallet-template-transaction-payment"
 version = "3.0.0"
 dependencies = [
  "frame-benchmarking",
