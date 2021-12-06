@@ -15,7 +15,7 @@ mod tests;
 mod benchmarking;
 
 mod sponsorship;
-pub use sponsorship::{ NftSponsorshipHandler };
+pub use sponsorship::NftSponsorshipHandler;
 
 #[frame_support::pallet]
 pub mod pallet {

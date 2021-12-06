@@ -17,8 +17,8 @@ use frame_support::{
 	traits::Get,
 	weights::{DispatchClass, DispatchInfo, PostDispatchInfo},
 };
-use scale_info::TypeInfo;
 use pallet_transaction_payment::OnChargeTransaction;
+use scale_info::TypeInfo;
 use sp_runtime::{
 	traits::{
 		DispatchInfoOf, Dispatchable, PostDispatchInfoOf, SaturatedConversion, Saturating,
@@ -32,7 +32,7 @@ use sp_runtime::{
 use sp_std::prelude::*;
 use up_sponsorship::SponsorshipHandler;
 
-pub trait Config: frame_system::Config + pallet_transaction_payment::Config  {
+pub trait Config: frame_system::Config + pallet_transaction_payment::Config {
 	type SponsorshipHandler: SponsorshipHandler<Self::AccountId, Self::Call>;
 }
 
