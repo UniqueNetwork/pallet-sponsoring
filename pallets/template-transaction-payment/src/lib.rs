@@ -15,7 +15,7 @@ use codec::{Decode, Encode};
 use frame_support::{
 	decl_module, decl_storage,
 	traits::Get,
-	weights::{DispatchClass, DispatchInfo, PostDispatchInfo},
+	weights::{DispatchClass, DispatchInfo, Pays, PostDispatchInfo},
 };
 use pallet_transaction_payment::OnChargeTransaction;
 use scale_info::TypeInfo;
@@ -115,7 +115,8 @@ where
 		let fee = Self::traditional_fee(len, info, tip);
 
 		// Only mess with balances if fee is not zero.
-		if fee.is_zero() {
+		// If pays_fee == No, then we still should lock sponsors balance instead of caller
+		if fee.is_zero() && info.pays_fee != Pays::No {
 			return <<T as pallet_transaction_payment::Config>::OnChargeTransaction as pallet_transaction_payment::OnChargeTransaction<T>>::withdraw_fee(who, call, info, fee, tip)
 			.map(|i| (fee, i));
 		}
