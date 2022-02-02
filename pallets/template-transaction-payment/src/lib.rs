@@ -175,19 +175,20 @@ where
 	}
 
 	fn post_dispatch(
-		pre: Self::Pre,
+		pre: Option<Self::Pre>,
 		info: &DispatchInfoOf<Self::Call>,
 		post_info: &PostDispatchInfoOf<Self::Call>,
 		len: usize,
 		_result: &DispatchResult,
 	) -> Result<(), TransactionValidityError> {
-		let (tip, who, imbalance) = pre;
-		let actual_fee = pallet_transaction_payment::Pallet::<T>::compute_actual_fee(
-			len as u32, info, post_info, tip,
-		);
-		<T as pallet_transaction_payment::Config>::OnChargeTransaction::correct_and_deposit_fee(
-			&who, info, post_info, actual_fee, tip, imbalance,
-		)?;
+		if let Some((tip, who, imbalance)) = pre {
+			let actual_fee = pallet_transaction_payment::Pallet::<T>::compute_actual_fee(
+				len as u32, info, post_info, tip,
+			);
+			<T as pallet_transaction_payment::Config>::OnChargeTransaction::correct_and_deposit_fee(
+				&who, info, post_info, actual_fee, tip, imbalance,
+			)?;
+		}
 		Ok(())
 	}
 }
