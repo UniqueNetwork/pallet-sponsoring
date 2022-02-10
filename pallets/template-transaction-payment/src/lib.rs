@@ -63,11 +63,6 @@ impl<T: Config + Send + Sync> ChargeTransactionPayment<T> {
 	}
 }
 
-/// Require the transactor pay for themselves and maybe include a tip to gain additional priority
-/// in the queue.
-#[derive(Encode, Decode, Clone, Eq, PartialEq, TypeInfo)]
-pub struct ChargeTransactionPayment<T: Config>(#[codec(compact)] BalanceOf<T>);
-
 impl<T: Config + Send + Sync> sp_std::fmt::Debug for ChargeTransactionPayment<T> {
 	#[cfg(feature = "std")]
 	fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
