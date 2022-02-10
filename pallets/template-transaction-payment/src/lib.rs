@@ -56,6 +56,18 @@ type BalanceOf<T> = <<T as pallet_transaction_payment::Config>::OnChargeTransact
 #[derive(Encode, Decode, Clone, Eq, PartialEq, TypeInfo)]
 pub struct ChargeTransactionPayment<T: Config>(#[codec(compact)] BalanceOf<T>);
 
+impl<T: Config + Send + Sync> ChargeTransactionPayment<T> {
+	/// Create new `SignedExtension`
+	pub fn new(tip: BalanceOf<T>) -> Self {
+		Self(tip)
+	}
+}
+
+/// Require the transactor pay for themselves and maybe include a tip to gain additional priority
+/// in the queue.
+#[derive(Encode, Decode, Clone, Eq, PartialEq, TypeInfo)]
+pub struct ChargeTransactionPayment<T: Config>(#[codec(compact)] BalanceOf<T>);
+
 impl<T: Config + Send + Sync> sp_std::fmt::Debug for ChargeTransactionPayment<T> {
 	#[cfg(feature = "std")]
 	fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
