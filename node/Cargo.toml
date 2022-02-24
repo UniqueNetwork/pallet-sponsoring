@@ -24,7 +24,7 @@ futures = '0.3.17'
 log = '0.4.14'
 flexi_logger = "0.15.7"
 parking_lot = '0.11.2'
-structopt = '0.3.23'
+clap = "3.1.2"
 jsonrpc-core = "18.0.0"
 jsonrpc-pubsub = "18.0.0"
 
@@ -34,114 +34,114 @@ version = '3.0.0'
 
 [dependencies.frame-benchmarking]
 git = 'https://github.com/paritytech/substrate.git'
-branch = 'polkadot-v0.9.16'
+branch = 'polkadot-v0.9.17'
 
 [dependencies.frame-benchmarking-cli]
 git = 'https://github.com/paritytech/substrate.git'
-branch = 'polkadot-v0.9.16'
+branch = 'polkadot-v0.9.17'
 
 [dependencies.pallet-transaction-payment-rpc]
 git = 'https://github.com/paritytech/substrate.git'
-branch = 'polkadot-v0.9.16'
+branch = 'polkadot-v0.9.17'
 
 [dependencies.sc-basic-authorship]
 git = 'https://github.com/paritytech/substrate.git'
-branch = 'polkadot-v0.9.16'
+branch = 'polkadot-v0.9.17'
 
 [dependencies.sc-cli]
 features = ['wasmtime']
 git = 'https://github.com/paritytech/substrate.git'
-branch = 'polkadot-v0.9.16'
+branch = 'polkadot-v0.9.17'
 
 [dependencies.sc-client-api]
 git = 'https://github.com/paritytech/substrate.git'
-branch = 'polkadot-v0.9.16'
+branch = 'polkadot-v0.9.17'
 
 [dependencies.sc-consensus]
 git = 'https://github.com/paritytech/substrate.git'
-branch = 'polkadot-v0.9.16'
+branch = 'polkadot-v0.9.17'
 
 [dependencies.sc-consensus-aura]
 git = 'https://github.com/paritytech/substrate.git'
-branch = 'polkadot-v0.9.16'
+branch = 'polkadot-v0.9.17'
 
 [dependencies.sc-executor]
 features = ['wasmtime']
 git = 'https://github.com/paritytech/substrate.git'
-branch = 'polkadot-v0.9.16'
+branch = 'polkadot-v0.9.17'
 
 [dependencies.sc-finality-grandpa]
 git = 'https://github.com/paritytech/substrate.git'
-branch = 'polkadot-v0.9.16'
+branch = 'polkadot-v0.9.17'
 
 [dependencies.sc-keystore]
 git = 'https://github.com/paritytech/substrate.git'
-branch = 'polkadot-v0.9.16'
+branch = 'polkadot-v0.9.17'
 
 [dependencies.sc-rpc]
 git = 'https://github.com/paritytech/substrate.git'
-branch = 'polkadot-v0.9.16'
+branch = 'polkadot-v0.9.17'
 
 [dependencies.sc-rpc-api]
 git = 'https://github.com/paritytech/substrate.git'
-branch = 'polkadot-v0.9.16'
+branch = 'polkadot-v0.9.17'
 
 [dependencies.sc-service]
 features = ['wasmtime']
 git = 'https://github.com/paritytech/substrate.git'
-branch = 'polkadot-v0.9.16'
+branch = 'polkadot-v0.9.17'
 
 [dependencies.sc-telemetry]
 git = 'https://github.com/paritytech/substrate.git'
-branch = 'polkadot-v0.9.16'
+branch = 'polkadot-v0.9.17'
 
 [dependencies.sc-transaction-pool]
 git = 'https://github.com/paritytech/substrate.git'
-branch = 'polkadot-v0.9.16'
+branch = 'polkadot-v0.9.17'
 
 [dependencies.sc-transaction-pool-api]
 git = 'https://github.com/paritytech/substrate.git'
-branch = 'polkadot-v0.9.16'
+branch = 'polkadot-v0.9.17'
 
 [dependencies.sp-api]
 git = 'https://github.com/paritytech/substrate.git'
-branch = 'polkadot-v0.9.16'
+branch = 'polkadot-v0.9.17'
 
 [dependencies.sp-block-builder]
 git = 'https://github.com/paritytech/substrate.git'
-branch = 'polkadot-v0.9.16'
+branch = 'polkadot-v0.9.17'
 
 [dependencies.sp-blockchain]
 git = 'https://github.com/paritytech/substrate.git'
-branch = 'polkadot-v0.9.16'
+branch = 'polkadot-v0.9.17'
 
 [dependencies.sp-consensus]
 git = 'https://github.com/paritytech/substrate.git'
-branch = 'polkadot-v0.9.16'
+branch = 'polkadot-v0.9.17'
 
 [dependencies.sp-consensus-aura]
 git = 'https://github.com/paritytech/substrate.git'
-branch = 'polkadot-v0.9.16'
+branch = 'polkadot-v0.9.17'
 
 [dependencies.sp-core]
 git = 'https://github.com/paritytech/substrate.git'
-branch = 'polkadot-v0.9.16'
+branch = 'polkadot-v0.9.17'
 
 [dependencies.sp-finality-grandpa]
 git = 'https://github.com/paritytech/substrate.git'
-branch = 'polkadot-v0.9.16'
+branch = 'polkadot-v0.9.17'
 
 [dependencies.sp-runtime]
 git = 'https://github.com/paritytech/substrate.git'
-branch = 'polkadot-v0.9.16'
+branch = 'polkadot-v0.9.17'
 
 [dependencies.sp-timestamp]
 git = 'https://github.com/paritytech/substrate.git'
-branch = 'polkadot-v0.9.16'
+branch = 'polkadot-v0.9.17'
 
 [dependencies.substrate-frame-rpc-system]
 git = 'https://github.com/paritytech/substrate.git'
-branch = 'polkadot-v0.9.16'
+branch = 'polkadot-v0.9.17'
 
 [features]
 default = []
