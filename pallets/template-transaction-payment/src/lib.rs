@@ -15,10 +15,10 @@ use codec::{Decode, Encode};
 use frame_support::{
 	decl_module, decl_storage,
 	traits::Get,
-	weights::{DispatchClass, DispatchInfo, PostDispatchInfo},
+	weights::{DispatchClass, DispatchInfo, Pays, PostDispatchInfo},
 };
-use scale_info::TypeInfo;
 use pallet_transaction_payment::OnChargeTransaction;
+use scale_info::TypeInfo;
 use sp_runtime::{
 	traits::{
 		DispatchInfoOf, Dispatchable, PostDispatchInfoOf, SaturatedConversion, Saturating,
@@ -32,7 +32,7 @@ use sp_runtime::{
 use sp_std::prelude::*;
 use up_sponsorship::SponsorshipHandler;
 
-pub trait Config: frame_system::Config + pallet_transaction_payment::Config  {
+pub trait Config: frame_system::Config + pallet_transaction_payment::Config {
 	type SponsorshipHandler: SponsorshipHandler<Self::AccountId, Self::Call>;
 }
 
@@ -55,6 +55,13 @@ type BalanceOf<T> = <<T as pallet_transaction_payment::Config>::OnChargeTransact
 /// in the queue.
 #[derive(Encode, Decode, Clone, Eq, PartialEq, TypeInfo)]
 pub struct ChargeTransactionPayment<T: Config>(#[codec(compact)] BalanceOf<T>);
+
+impl<T: Config + Send + Sync> ChargeTransactionPayment<T> {
+	/// Create new `SignedExtension`
+	pub fn new(tip: BalanceOf<T>) -> Self {
+		Self(tip)
+	}
+}
 
 impl<T: Config + Send + Sync> sp_std::fmt::Debug for ChargeTransactionPayment<T> {
 	#[cfg(feature = "std")]
@@ -167,19 +174,20 @@ where
 	}
 
 	fn post_dispatch(
-		pre: Self::Pre,
+		pre: Option<Self::Pre>,
 		info: &DispatchInfoOf<Self::Call>,
 		post_info: &PostDispatchInfoOf<Self::Call>,
 		len: usize,
 		_result: &DispatchResult,
 	) -> Result<(), TransactionValidityError> {
-		let (tip, who, imbalance) = pre;
-		let actual_fee = pallet_transaction_payment::Pallet::<T>::compute_actual_fee(
-			len as u32, info, post_info, tip,
-		);
-		<T as pallet_transaction_payment::Config>::OnChargeTransaction::correct_and_deposit_fee(
-			&who, info, post_info, actual_fee, tip, imbalance,
-		)?;
+		if let Some((tip, who, imbalance)) = pre {
+			let actual_fee = pallet_transaction_payment::Pallet::<T>::compute_actual_fee(
+				len as u32, info, post_info, tip,
+			);
+			<T as pallet_transaction_payment::Config>::OnChargeTransaction::correct_and_deposit_fee(
+				&who, info, post_info, actual_fee, tip, imbalance,
+			)?;
+		}
 		Ok(())
 	}
 }
