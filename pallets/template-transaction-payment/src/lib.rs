@@ -22,7 +22,7 @@ use scale_info::TypeInfo;
 use sp_runtime::{
 	traits::{
 		DispatchInfoOf, Dispatchable, PostDispatchInfoOf, SaturatedConversion, Saturating,
-		SignedExtension, Zero,
+		SignedExtension,
 	},
 	transaction_validity::{
 		TransactionPriority, TransactionValidity, TransactionValidityError, ValidTransaction,
@@ -118,20 +118,11 @@ where
 		TransactionValidityError,
 	>{
 		let tip = self.0;
-
 		let fee = Self::traditional_fee(len, info, tip);
-
-		// Only mess with balances if fee is not zero.
-		// If pays_fee == No, then we still should lock sponsors balance instead of caller
-		if fee.is_zero() && info.pays_fee != Pays::No {
-			return <<T as pallet_transaction_payment::Config>::OnChargeTransaction as pallet_transaction_payment::OnChargeTransaction<T>>::withdraw_fee(who, call, info, fee, tip)
-			.map(|i| (fee, i));
-		}
 
 		// Determine who is paying transaction fee based on ecnomic model
 		// Parse call to extract collection ID and access collection sponsor
 		let sponsor = T::SponsorshipHandler::get_sponsor(who, call);
-
 		let who_pays_fee = sponsor.unwrap_or_else(|| who.clone());
 
 		<<T as pallet_transaction_payment::Config>::OnChargeTransaction as pallet_transaction_payment::OnChargeTransaction<T>>::withdraw_fee(&who_pays_fee, call, info, fee, tip)
