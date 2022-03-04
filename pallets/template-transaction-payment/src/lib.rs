@@ -15,7 +15,7 @@ use codec::{Decode, Encode};
 use frame_support::{
 	decl_module, decl_storage,
 	traits::Get,
-	weights::{DispatchClass, DispatchInfo, Pays, PostDispatchInfo},
+	weights::{DispatchClass, DispatchInfo, PostDispatchInfo},
 };
 use pallet_transaction_payment::OnChargeTransaction;
 use scale_info::TypeInfo;
@@ -113,6 +113,7 @@ where
 	) -> Result<
 		(
 			BalanceOf<T>,
+			T::AccountId,
 			<<T as pallet_transaction_payment::Config>::OnChargeTransaction as pallet_transaction_payment::OnChargeTransaction<T>>::LiquidityInfo,
 		),
 		TransactionValidityError,
@@ -125,8 +126,9 @@ where
 		let sponsor = T::SponsorshipHandler::get_sponsor(who, call);
 		let who_pays_fee = sponsor.unwrap_or_else(|| who.clone());
 
-		<<T as pallet_transaction_payment::Config>::OnChargeTransaction as pallet_transaction_payment::OnChargeTransaction<T>>::withdraw_fee(&who_pays_fee, call, info, fee, tip)
-			.map(|i| (fee, i))
+		let liquidity_info = <<T as pallet_transaction_payment::Config>::OnChargeTransaction as pallet_transaction_payment::OnChargeTransaction<T>>::withdraw_fee(&who_pays_fee, call, info, fee, tip)?;
+
+		Ok((fee, who_pays_fee, liquidity_info))
 	}
 }
 
@@ -158,7 +160,7 @@ where
 		info: &DispatchInfoOf<Self::Call>,
 		len: usize,
 	) -> TransactionValidity {
-		let (fee, _) = self.withdraw_fee(who, call, info, len)?;
+		let (fee, _, _) = self.withdraw_fee(who, call, info, len)?;
 		Ok(ValidTransaction { priority: Self::get_priority(len, info, fee), ..Default::default() })
 	}
 
@@ -169,8 +171,8 @@ where
 		info: &DispatchInfoOf<Self::Call>,
 		len: usize,
 	) -> Result<Self::Pre, TransactionValidityError> {
-		let (_fee, imbalance) = self.withdraw_fee(who, call, info, len)?;
-		Ok((self.0, who.clone(), imbalance))
+		let (_fee, who_pays_fee, imbalance) = self.withdraw_fee(who, call, info, len)?;
+		Ok((self.0, who_pays_fee, imbalance))
 	}
 
 	fn post_dispatch(
@@ -180,12 +182,12 @@ where
 		len: usize,
 		_result: &DispatchResult,
 	) -> Result<(), TransactionValidityError> {
-		if let Some((tip, who, imbalance)) = pre {
+		if let Some((tip, who_pays_fee, imbalance)) = pre {
 			let actual_fee = pallet_transaction_payment::Pallet::<T>::compute_actual_fee(
 				len as u32, info, post_info, tip,
 			);
 			<T as pallet_transaction_payment::Config>::OnChargeTransaction::correct_and_deposit_fee(
-				&who, info, post_info, actual_fee, tip, imbalance,
+				&who_pays_fee, info, post_info, actual_fee, tip, imbalance,
 			)?;
 		}
 		Ok(())
