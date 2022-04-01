@@ -79,7 +79,7 @@ where
 	T::Call: Dispatchable<Info = DispatchInfo, PostInfo = PostDispatchInfo>,
 	BalanceOf<T>: Send + Sync + From<u64> + FixedPointOperand,
 {
-	fn traditional_fee(
+	pub fn traditional_fee(
 		len: usize,
 		info: &DispatchInfoOf<T::Call>,
 		tip: BalanceOf<T>,
