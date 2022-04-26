@@ -1,0 +1,6 @@
+function(package)
+if package.source == "https://github.com/paritytech/substrate" then {
+    // https://github.com/rust-lang/cargo/issues/5478
+    git: "https://github.com//paritytech/substrate",
+    branch: "polkadot-v0.9.19",
+}

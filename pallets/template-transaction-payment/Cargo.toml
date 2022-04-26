@@ -1,7 +1,7 @@
 [package]
 authors = ['Substrate DevHub <https://github.com/substrate-developer-hub>']
 description = 'Unique pallet nft specific transaction payment'
-edition = '2018'
+edition = '2021'
 homepage = 'https://substrate.io'
 license = 'Unlicense'
 name = 'pallet-template-transaction-payment'
@@ -23,15 +23,15 @@ serde = { version = "1.0.130", default-features = false }
 scale-info = { version = "2.0.1", default-features = false, features = [
     "derive",
 ] }
-frame-support = { default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.18' }
-frame-system = { default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.18' }
-pallet-balances = { default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.18' }
-pallet-transaction-payment = { default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.18' }
-sp-std = { default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.18' }
-frame-benchmarking = { default-features = false, optional = true, git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.18' }
-sp-core = { default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.18' }
-sp-io = { default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.18' }
-sp-runtime = { default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = 'polkadot-v0.9.18' }
+frame-support = { default-features = false, git = 'https://github.com/paritytech/substrate', branch = 'master' }
+frame-system = { default-features = false, git = 'https://github.com/paritytech/substrate', branch = 'master' }
+pallet-balances = { default-features = false, git = 'https://github.com/paritytech/substrate', branch = 'master' }
+pallet-transaction-payment = { default-features = false, git = 'https://github.com/paritytech/substrate', branch = 'master' }
+sp-std = { default-features = false, git = 'https://github.com/paritytech/substrate', branch = 'master' }
+frame-benchmarking = { default-features = false, optional = true, git = 'https://github.com/paritytech/substrate', branch = 'master' }
+sp-core = { default-features = false, git = 'https://github.com/paritytech/substrate', branch = 'master' }
+sp-io = { default-features = false, git = 'https://github.com/paritytech/substrate', branch = 'master' }
+sp-runtime = { default-features = false, git = 'https://github.com/paritytech/substrate', branch = 'master' }
 
 up-sponsorship = { default-features = false, path = "../../primitives/sponsorship", version = "0.1.0" }
 
