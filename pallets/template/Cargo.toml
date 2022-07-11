@@ -20,17 +20,17 @@ version = '2.0.1'
 [dev-dependencies.sp-core]
 default-features = false
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.24"
+branch = "polkadot-v0.9.25"
 
 [dev-dependencies.sp-io]
 default-features = false
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.24"
+branch = "polkadot-v0.9.25"
 
 [dev-dependencies.sp-runtime]
 default-features = false
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.24"
+branch = "polkadot-v0.9.25"
 
 [dependencies.codec]
 default-features = false
@@ -42,17 +42,17 @@ version = '3.1.2'
 default-features = false
 git = "https://github.com/paritytech/substrate"
 optional = true
-branch = "polkadot-v0.9.24"
+branch = "polkadot-v0.9.25"
 
 [dependencies.frame-support]
 default-features = false
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.24"
+branch = "polkadot-v0.9.25"
 
 [dependencies.frame-system]
 default-features = false
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.24"
+branch = "polkadot-v0.9.25"
 
 [dependencies.up-sponsorship]
 default-features = false
