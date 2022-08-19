@@ -25,7 +25,8 @@ use sp_runtime::{
 		SignedExtension,
 	},
 	transaction_validity::{
-		TransactionPriority, TransactionValidity, TransactionValidityError, ValidTransaction,
+		InvalidTransaction, TransactionPriority, TransactionValidity, TransactionValidityError,
+		ValidTransaction,
 	},
 	DispatchResult, FixedPointOperand,
 };
@@ -33,7 +34,7 @@ use sp_std::prelude::*;
 use up_sponsorship::SponsorshipHandler;
 
 pub trait Config: frame_system::Config + pallet_transaction_payment::Config {
-	type SponsorshipHandler: SponsorshipHandler<Self::AccountId, Self::Call>;
+	type SponsorshipHandler: SponsorshipHandler<Self::AccountId, Self::Call, u128>;
 }
 
 decl_storage! {
@@ -123,7 +124,12 @@ where
 
 		// Determine who is paying transaction fee based on ecnomic model
 		// Parse call to extract collection ID and access collection sponsor
-		let sponsor = T::SponsorshipHandler::get_sponsor(who, call);
+		let sponsor = T::SponsorshipHandler::get_sponsor(
+			who,
+			call,
+			&fee.try_into()
+				.map_err(|_| TransactionValidityError::Invalid(InvalidTransaction::Payment))?,
+		);
 		let who_pays_fee = sponsor.unwrap_or_else(|| who.clone());
 
 		let liquidity_info = <<T as pallet_transaction_payment::Config>::OnChargeTransaction as pallet_transaction_payment::OnChargeTransaction<T>>::withdraw_fee(&who_pays_fee, call, info, fee, tip)?;

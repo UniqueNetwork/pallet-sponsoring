@@ -20,12 +20,12 @@ impl<T: Config> NftSponsorshipHandler<T> {
 	}
 }
 
-impl<T, C> SponsorshipHandler<T::AccountId, C> for NftSponsorshipHandler<T>
+impl<T, C, F> SponsorshipHandler<T::AccountId, C, F> for NftSponsorshipHandler<T>
 where
 	T: Config,
 	C: IsSubType<Call<T>>,
 {
-	fn get_sponsor(who: &T::AccountId, call: &C) -> Option<T::AccountId> {
+	fn get_sponsor(who: &T::AccountId, call: &C, _fee_limit: &F) -> Option<T::AccountId> {
 		match IsSubType::<Call<T>>::is_sub_type(call)? {
 			Call::do_something { something, who_will_pay } =>
 				Self::withdraw(who, something, who_will_pay),

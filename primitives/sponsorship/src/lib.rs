@@ -1,26 +1,26 @@
 #![no_std]
 
-pub trait SponsorshipHandler<AccountId, Call> {
-	fn get_sponsor(who: &AccountId, call: &Call) -> Option<AccountId>;
+pub trait SponsorshipHandler<AccountId, Call, Fee> {
+	fn get_sponsor(who: &AccountId, call: &Call, fee_limit: &Fee) -> Option<AccountId>;
 }
 
-impl<A, C> SponsorshipHandler<A, C> for () {
-	fn get_sponsor(_who: &A, _call: &C) -> Option<A> {
+impl<A, C, F> SponsorshipHandler<A, C, F> for () {
+	fn get_sponsor(_who: &A, _call: &C, _fee_limit: &F) -> Option<A> {
 		None
 	}
 }
 
 macro_rules! impl_tuples {
 	($($ident:ident)+) => {
-		impl<AccountId, Call, $($ident),+> SponsorshipHandler<AccountId, Call> for ($($ident,)+)
+		impl<AccountId, Call, Fee, $($ident),+> SponsorshipHandler<AccountId, Call, Fee> for ($($ident,)+)
 		where
 			$(
-				$ident: SponsorshipHandler<AccountId, Call>
+				$ident: SponsorshipHandler<AccountId, Call, Fee>
 			),+
 		{
-			fn get_sponsor(who: &AccountId, call: &Call) -> Option<AccountId> {
+			fn get_sponsor(who: &AccountId, call: &Call, fee_limit: &Fee) -> Option<AccountId> {
 				$(
-					if let Some(account) = $ident::get_sponsor(who, call) {
+					if let Some(account) = $ident::get_sponsor(who, call, fee_limit) {
 						return Some(account);
 					}
 				)+
