@@ -95,11 +95,11 @@ where
 		info: &DispatchInfoOf<T::Call>,
 		final_fee: BalanceOf<T>,
 	) -> TransactionPriority {
-		let weight_saturation = T::BlockWeights::get().max_block / info.weight.max(1);
+		let weight_saturation = T::BlockWeights::get().max_block / info.weight.ref_time().max(1);
 		let max_block_length = *T::BlockLength::get().max.get(DispatchClass::Normal);
 		let len_saturation = max_block_length as u64 / (len as u64).max(1);
 		let coefficient: BalanceOf<T> =
-			weight_saturation.min(len_saturation).saturated_into::<BalanceOf<T>>();
+			weight_saturation.ref_time().min(len_saturation).saturated_into::<BalanceOf<T>>();
 		final_fee.saturating_mul(coefficient).saturated_into::<TransactionPriority>()
 	}
 
