@@ -14,8 +14,8 @@ pub use serde::*;
 use codec::{Decode, Encode};
 use frame_support::{
 	decl_module, decl_storage,
+	dispatch::{DispatchClass, DispatchInfo, PostDispatchInfo},
 	traits::Get,
-	weights::{DispatchClass, DispatchInfo, PostDispatchInfo},
 };
 use pallet_transaction_payment::OnChargeTransaction;
 use scale_info::TypeInfo;
@@ -33,7 +33,7 @@ use sp_std::prelude::*;
 use up_sponsorship::SponsorshipHandler;
 
 pub trait Config: frame_system::Config + pallet_transaction_payment::Config {
-	type SponsorshipHandler: SponsorshipHandler<Self::AccountId, Self::Call>;
+	type SponsorshipHandler: SponsorshipHandler<Self::AccountId, Self::RuntimeCall>;
 }
 
 decl_storage! {
@@ -45,7 +45,7 @@ decl_module! {
 
 	pub struct Module<T: Config> for enum Call
 	where
-		origin: T::Origin,
+		origin: T::RuntimeOrigin,
 	{}
 }
 
@@ -76,30 +76,32 @@ impl<T: Config + Send + Sync> sp_std::fmt::Debug for ChargeTransactionPayment<T>
 
 impl<T: Config> ChargeTransactionPayment<T>
 where
-	T::Call: Dispatchable<Info = DispatchInfo, PostInfo = PostDispatchInfo>,
+	T::RuntimeCall: Dispatchable<Info = DispatchInfo, PostInfo = PostDispatchInfo>,
 	BalanceOf<T>: Send + Sync + From<u64> + FixedPointOperand,
 {
 	pub fn traditional_fee(
 		len: usize,
-		info: &DispatchInfoOf<T::Call>,
+		info: &DispatchInfoOf<T::RuntimeCall>,
 		tip: BalanceOf<T>,
 	) -> BalanceOf<T>
 	where
-		T::Call: Dispatchable<Info = DispatchInfo>,
+		T::RuntimeCall: Dispatchable<Info = DispatchInfo>,
 	{
 		<pallet_transaction_payment::Pallet<T>>::compute_fee(len as u32, info, tip)
 	}
 
 	fn get_priority(
 		len: usize,
-		info: &DispatchInfoOf<T::Call>,
+		info: &DispatchInfoOf<T::RuntimeCall>,
 		final_fee: BalanceOf<T>,
 	) -> TransactionPriority {
 		let weight_saturation = T::BlockWeights::get().max_block / info.weight.ref_time().max(1);
 		let max_block_length = *T::BlockLength::get().max.get(DispatchClass::Normal);
 		let len_saturation = max_block_length as u64 / (len as u64).max(1);
-		let coefficient: BalanceOf<T> =
-			weight_saturation.ref_time().min(len_saturation).saturated_into::<BalanceOf<T>>();
+		let coefficient: BalanceOf<T> = weight_saturation
+			.ref_time()
+			.min(len_saturation)
+			.saturated_into::<BalanceOf<T>>();
 		final_fee.saturating_mul(coefficient).saturated_into::<TransactionPriority>()
 	}
 
@@ -107,8 +109,8 @@ where
     fn withdraw_fee(
         &self,
         who: &T::AccountId,
-        call: &T::Call,
-        info: &DispatchInfoOf<T::Call>,
+        call: &T::RuntimeCall,
+        info: &DispatchInfoOf<T::RuntimeCall>,
         len: usize,
 	) -> Result<
 		(
@@ -135,11 +137,11 @@ where
 impl<T: Config + Send + Sync + TypeInfo> SignedExtension for ChargeTransactionPayment<T>
 where
 	BalanceOf<T>: Send + Sync + From<u64> + FixedPointOperand,
-	T::Call: Dispatchable<Info = DispatchInfo, PostInfo = PostDispatchInfo>,
+	T::RuntimeCall: Dispatchable<Info = DispatchInfo, PostInfo = PostDispatchInfo>,
 {
 	const IDENTIFIER: &'static str = "ChargeTransactionPayment";
 	type AccountId = T::AccountId;
-	type Call = T::Call;
+	type Call = T::RuntimeCall;
 	type AdditionalSigned = ();
 	type Pre = (
         // tip
