@@ -33,114 +33,114 @@ version = '3.0.0'
 
 [dependencies.frame-benchmarking]
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.33"
+branch = "polkadot-v0.9.33-asset-destroy"
 
 [dependencies.frame-benchmarking-cli]
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.33"
+branch = "polkadot-v0.9.33-asset-destroy"
 
 [dependencies.pallet-transaction-payment-rpc]
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.33"
+branch = "polkadot-v0.9.33-asset-destroy"
 
 [dependencies.sc-basic-authorship]
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.33"
+branch = "polkadot-v0.9.33-asset-destroy"
 
 [dependencies.sc-cli]
 features = ['wasmtime']
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.33"
+branch = "polkadot-v0.9.33-asset-destroy"
 
 [dependencies.sc-client-api]
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.33"
+branch = "polkadot-v0.9.33-asset-destroy"
 
 [dependencies.sc-consensus]
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.33"
+branch = "polkadot-v0.9.33-asset-destroy"
 
 [dependencies.sc-consensus-aura]
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.33"
+branch = "polkadot-v0.9.33-asset-destroy"
 
 [dependencies.sc-executor]
 features = ['wasmtime']
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.33"
+branch = "polkadot-v0.9.33-asset-destroy"
 
 [dependencies.sc-finality-grandpa]
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.33"
+branch = "polkadot-v0.9.33-asset-destroy"
 
 [dependencies.sc-keystore]
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.33"
+branch = "polkadot-v0.9.33-asset-destroy"
 
 [dependencies.sc-rpc]
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.33"
+branch = "polkadot-v0.9.33-asset-destroy"
 
 [dependencies.sc-rpc-api]
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.33"
+branch = "polkadot-v0.9.33-asset-destroy"
 
 [dependencies.sc-service]
 features = ['wasmtime']
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.33"
+branch = "polkadot-v0.9.33-asset-destroy"
 
 [dependencies.sc-telemetry]
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.33"
+branch = "polkadot-v0.9.33-asset-destroy"
 
 [dependencies.sc-transaction-pool]
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.33"
+branch = "polkadot-v0.9.33-asset-destroy"
 
 [dependencies.sc-transaction-pool-api]
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.33"
+branch = "polkadot-v0.9.33-asset-destroy"
 
 [dependencies.sp-api]
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.33"
+branch = "polkadot-v0.9.33-asset-destroy"
 
 [dependencies.sp-block-builder]
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.33"
+branch = "polkadot-v0.9.33-asset-destroy"
 
 [dependencies.sp-blockchain]
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.33"
+branch = "polkadot-v0.9.33-asset-destroy"
 
 [dependencies.sp-consensus]
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.33"
+branch = "polkadot-v0.9.33-asset-destroy"
 
 [dependencies.sp-consensus-aura]
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.33"
+branch = "polkadot-v0.9.33-asset-destroy"
 
 [dependencies.sp-core]
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.33"
+branch = "polkadot-v0.9.33-asset-destroy"
 
 [dependencies.sp-finality-grandpa]
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.33"
+branch = "polkadot-v0.9.33-asset-destroy"
 
 [dependencies.sp-runtime]
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.33"
+branch = "polkadot-v0.9.33-asset-destroy"
 
 [dependencies.sp-timestamp]
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.33"
+branch = "polkadot-v0.9.33-asset-destroy"
 
 [dependencies.substrate-frame-rpc-system]
 git = "https://github.com/paritytech/substrate"
-branch = "polkadot-v0.9.33"
+branch = "polkadot-v0.9.33-asset-destroy"
 
 [features]
 default = []
