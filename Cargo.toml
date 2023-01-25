@@ -2,5 +2,5 @@
 panic = 'unwind'
 
 [workspace]
-resolver = "2"
 members = ['node', 'pallets/*', 'runtime']
+resolver = "2"
