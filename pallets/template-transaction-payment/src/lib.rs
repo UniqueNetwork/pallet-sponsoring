@@ -13,7 +13,6 @@ pub use serde::*;
 
 use codec::{Decode, Encode};
 use frame_support::{
-	decl_module, decl_storage,
 	dispatch::{DispatchClass, DispatchInfo, PostDispatchInfo},
 	traits::Get,
 };
@@ -32,21 +31,19 @@ use sp_runtime::{
 use sp_std::prelude::*;
 use up_sponsorship::SponsorshipHandler;
 
-pub trait Config: frame_system::Config + pallet_transaction_payment::Config {
-	type SponsorshipHandler: SponsorshipHandler<Self::AccountId, Self::RuntimeCall>;
-}
+pub use pallet::*;
 
-decl_storage! {
-	trait Store for Module<T: Config> as NftTransactionPayment
-	{}
-}
+#[frame_support::pallet]
+mod pallet {
+	use super::*;
 
-decl_module! {
+	#[pallet::config]
+	pub trait Config: frame_system::Config + pallet_transaction_payment::Config {
+		type SponsorshipHandler: SponsorshipHandler<Self::AccountId, Self::RuntimeCall>;
+	}
 
-	pub struct Module<T: Config> for enum Call
-	where
-		origin: T::RuntimeOrigin,
-	{}
+	#[pallet::pallet]
+	pub struct Pallet<T>(_);
 }
 
 type BalanceOf<T> = <<T as pallet_transaction_payment::Config>::OnChargeTransaction as pallet_transaction_payment::OnChargeTransaction<T>>::Balance;

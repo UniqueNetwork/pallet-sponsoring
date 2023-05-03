@@ -3,12 +3,12 @@
 use node_template_runtime::{self, opaque::Block, RuntimeApi};
 use sc_client_api::HeaderBackend;
 use sc_consensus_aura::{ImportQueueParams, SlotProportion, StartAuraParams};
+use sc_consensus_grandpa::SharedVoterState;
 pub use sc_executor::NativeElseWasmExecutor;
 use sc_keystore::LocalKeystore;
 use sc_service::{error::Error as ServiceError, Configuration, TaskManager};
 use sc_telemetry::{Telemetry, TelemetryWorker};
 use sp_consensus_aura::sr25519::AuthorityPair as AuraPair;
-use sc_consensus_grandpa::SharedVoterState;
 use std::{sync::Arc, time::Duration};
 
 // Our native executor instance.
