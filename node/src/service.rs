@@ -138,7 +138,7 @@ pub fn new_partial(
 }
 
 /// Builds a new service for a full client.
-pub fn new_full(mut config: Configuration) -> Result<TaskManager, ServiceError> {
+pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
 	let sc_service::PartialComponents {
 		client,
 		backend,
@@ -149,20 +149,17 @@ pub fn new_full(mut config: Configuration) -> Result<TaskManager, ServiceError> 
 		transaction_pool,
 		other: (block_import, grandpa_link, mut telemetry),
 	} = new_partial(&config)?;
+	let net_config = sc_network::config::FullNetworkConfiguration::new(&config.network);
 
 	let protocol_name = sc_consensus_grandpa::protocol_standard_name(
 		&client.info().genesis_hash,
 		&config.chain_spec,
 	);
 
-	config
-		.network
-		.extra_sets
-		.push(sc_consensus_grandpa::grandpa_peers_set_config(protocol_name.clone()));
-
 	let (network, system_rpc_tx, tx_handler_controller, network_starter, sync_service) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &config,
+			net_config,
 			client: client.clone(),
 			transaction_pool: transaction_pool.clone(),
 			spawn_handle: task_manager.spawn_handle(),
