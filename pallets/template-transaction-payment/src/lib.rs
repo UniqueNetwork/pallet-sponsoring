@@ -8,16 +8,16 @@
 #[cfg(feature = "std")]
 pub use std::*;
 
-#[cfg(feature = "std")]
-pub use serde::*;
-
 use codec::{Decode, Encode};
 use frame_support::{
 	dispatch::{DispatchClass, DispatchInfo, PostDispatchInfo},
 	traits::Get,
 };
+pub use pallet::*;
 use pallet_transaction_payment::OnChargeTransaction;
 use scale_info::TypeInfo;
+#[cfg(feature = "std")]
+pub use serde::*;
 use sp_runtime::{
 	traits::{
 		DispatchInfoOf, Dispatchable, PostDispatchInfoOf, SaturatedConversion, Saturating,
@@ -30,8 +30,6 @@ use sp_runtime::{
 };
 use sp_std::prelude::*;
 use up_sponsorship::SponsorshipHandler;
-
-pub use pallet::*;
 
 #[frame_support::pallet]
 mod pallet {
@@ -99,7 +97,9 @@ where
 			.ref_time()
 			.min(len_saturation)
 			.saturated_into::<BalanceOf<T>>();
-		final_fee.saturating_mul(coefficient).saturated_into::<TransactionPriority>()
+		final_fee
+			.saturating_mul(coefficient)
+			.saturated_into::<TransactionPriority>()
 	}
 
 	#[allow(clippy::type_complexity)]
@@ -160,7 +160,10 @@ where
 		len: usize,
 	) -> TransactionValidity {
 		let (fee, _, _) = self.withdraw_fee(who, call, info, len)?;
-		Ok(ValidTransaction { priority: Self::get_priority(len, info, fee), ..Default::default() })
+		Ok(ValidTransaction {
+			priority: Self::get_priority(len, info, fee),
+			..Default::default()
+		})
 	}
 
 	fn pre_dispatch(
