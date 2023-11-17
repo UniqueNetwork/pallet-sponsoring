@@ -17,44 +17,44 @@ targets = ['x86_64-unknown-linux-gnu']
 name = 'node-template'
 
 [build-dependencies]
-substrate-build-script-utils = "7.0.0"
+substrate-build-script-utils = "9.0.0"
 
 [dependencies]
 clap = "4.4.6"
 flexi_logger = "0.27.2"
-frame-benchmarking = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.2.0" }
-frame-benchmarking-cli = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.2.0" }
+frame-benchmarking = "25.0.0"
+frame-benchmarking-cli = "29.0.0"
 futures = "0.3.28"
 jsonrpsee = { version = "0.16.3", features = ["server"] }
 log = "0.4.20"
-node-template-runtime = { path = '../runtime', version = '3.0.0' }
-pallet-transaction-payment-rpc = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.2.0" }
+node-template-runtime = { path = "../runtime" }
+pallet-transaction-payment-rpc = "27.0.0"
 parking_lot = '0.12.1'
-sc-basic-authorship = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.2.0" }
-sc-cli = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.2.0" }
-sc-client-api = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.2.0" }
-sc-consensus = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.2.0" }
-sc-consensus-aura = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.2.0" }
-sc-consensus-grandpa = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.2.0" }
-sc-executor = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.2.0" }
-sc-keystore = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.2.0" }
-sc-network = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.2.0" }
-sc-rpc = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.2.0" }
-sc-rpc-api = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.2.0" }
-sc-service = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.2.0" }
-sc-telemetry = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.2.0" }
-sc-transaction-pool = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.2.0" }
-sc-transaction-pool-api = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.2.0" }
-sp-api = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.2.0" }
-sp-block-builder = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.2.0" }
-sp-blockchain = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.2.0" }
-sp-consensus = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.2.0" }
-sp-consensus-aura = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.2.0" }
-sp-consensus-grandpa = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.2.0" }
-sp-core = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.2.0" }
-sp-runtime = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.2.0" }
-sp-timestamp = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.2.0" }
-substrate-frame-rpc-system = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.2.0" }
+sc-basic-authorship = "0.31.0"
+sc-cli = "0.33.0"
+sc-client-api = "25.0.0"
+sc-consensus = "0.30.0"
+sc-consensus-aura = "0.31.0"
+sc-consensus-grandpa = "0.16.0"
+sc-executor = "0.29.0"
+sc-keystore = "22.0.0"
+sc-network = "0.31.0"
+sc-rpc = "26.0.0"
+sc-rpc-api = "0.30.0"
+sc-service = "0.32.0"
+sc-telemetry = "12.0.0"
+sc-transaction-pool = "25.0.0"
+sc-transaction-pool-api = "25.0.0"
+sp-api = "23.0.0"
+sp-block-builder = "23.0.0"
+sp-blockchain = "25.0.0"
+sp-consensus = "0.29.0"
+sp-consensus-aura = "0.29.0"
+sp-consensus-grandpa = "10.0.0"
+sp-core = "25.0.0"
+sp-runtime = "28.0.0"
+sp-timestamp = "23.0.0"
+substrate-frame-rpc-system = "25.0.0"
 
 [features]
 default = []
