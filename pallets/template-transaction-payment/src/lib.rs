@@ -20,11 +20,12 @@ use scale_info::TypeInfo;
 pub use serde::*;
 use sp_runtime::{
 	traits::{
-		DispatchInfoOf, Dispatchable, PostDispatchInfoOf, SaturatedConversion, Saturating,
+		DispatchInfoOf, Dispatchable, One, PostDispatchInfoOf, SaturatedConversion, Saturating,
 		SignedExtension,
 	},
 	transaction_validity::{
-		TransactionPriority, TransactionValidity, TransactionValidityError, ValidTransaction,
+		InvalidTransaction, TransactionLongevity, TransactionPriority, TransactionValidity,
+		TransactionValidityError, ValidTransaction,
 	},
 	DispatchResult, FixedPointOperand,
 };
@@ -193,5 +194,104 @@ where
 			)?;
 		}
 		Ok(())
+	}
+}
+
+/// Copy of CheckNonce from frame-system, except for removed
+/// providers/consumers check, added in https://github.com/paritytech/polkadot-sdk/pull/1578.
+/// TODO: Make this check configurable for the upstream CheckNonce/remove as it gets removed/made configurable in
+/// upstream (Looks like it is planned: https://github.com/paritytech/polkadot-sdk/pull/1578#issuecomment-1754928101)
+#[derive(Encode, Decode, Clone, Eq, PartialEq, TypeInfo)]
+#[scale_info(skip_type_params(T))]
+pub struct CheckNonce<T: Config>(#[codec(compact)] pub T::Nonce);
+
+impl<T: Config> CheckNonce<T> {
+	/// utility constructor. Used only in client/factory code.
+	pub fn from(nonce: T::Nonce) -> Self {
+		Self(nonce)
+	}
+}
+
+impl<T: Config> sp_std::fmt::Debug for CheckNonce<T> {
+	#[cfg(feature = "std")]
+	fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
+		write!(f, "CheckNonce({})", self.0)
+	}
+
+	#[cfg(not(feature = "std"))]
+	fn fmt(&self, _: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
+		Ok(())
+	}
+}
+
+impl<T: Config> SignedExtension for CheckNonce<T>
+where
+	T::RuntimeCall: Dispatchable<Info = DispatchInfo>,
+{
+	type AccountId = T::AccountId;
+	type Call = T::RuntimeCall;
+	type AdditionalSigned = ();
+	type Pre = ();
+	const IDENTIFIER: &'static str = "CheckNonce";
+
+	fn additional_signed(&self) -> sp_std::result::Result<(), TransactionValidityError> {
+		Ok(())
+	}
+
+	fn pre_dispatch(
+		self,
+		who: &Self::AccountId,
+		_call: &Self::Call,
+		_info: &DispatchInfoOf<Self::Call>,
+		_len: usize,
+	) -> Result<(), TransactionValidityError> {
+		let mut account = frame_system::Account::<T>::get(who);
+		// if account.providers.is_zero() && account.sufficients.is_zero() {
+		// 	// Nonce storage not paid for
+		// 	return Err(InvalidTransaction::Payment.into());
+		// }
+		if self.0 != account.nonce {
+			return Err(if self.0 < account.nonce {
+				InvalidTransaction::Stale
+			} else {
+				InvalidTransaction::Future
+			}
+			.into());
+		}
+		account.nonce += T::Nonce::one();
+		frame_system::Account::<T>::insert(who, account);
+		Ok(())
+	}
+
+	fn validate(
+		&self,
+		who: &Self::AccountId,
+		_call: &Self::Call,
+		_info: &DispatchInfoOf<Self::Call>,
+		_len: usize,
+	) -> TransactionValidity {
+		let account = frame_system::Account::<T>::get(who);
+		// if account.providers.is_zero() && account.sufficients.is_zero() {
+		// 	// Nonce storage not paid for
+		// 	return InvalidTransaction::Payment.into();
+		// }
+		if self.0 < account.nonce {
+			return InvalidTransaction::Stale.into();
+		}
+
+		let provides = vec![Encode::encode(&(who, self.0))];
+		let requires = if account.nonce < self.0 {
+			vec![Encode::encode(&(who, self.0 - One::one()))]
+		} else {
+			vec![]
+		};
+
+		Ok(ValidTransaction {
+			priority: 0,
+			requires,
+			provides,
+			longevity: TransactionLongevity::max_value(),
+			propagate: true,
+		})
 	}
 }
