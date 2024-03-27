@@ -2,8 +2,8 @@
 
 use std::{sync::Arc, time::Duration};
 
-use node_template_runtime::{self, opaque::Block, RuntimeApi};
-use sc_client_api::HeaderBackend;
+use node_template_runtime::{opaque::Block, RuntimeApi};
+use sc_client_api::{HeaderBackend, BlockBackend};
 use sc_consensus_aura::{ImportQueueParams, SlotProportion, StartAuraParams};
 use sc_consensus_grandpa::SharedVoterState;
 pub use sc_executor::NativeElseWasmExecutor;
@@ -199,6 +199,13 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
 		})
 	};
 
+	let grandpa_protocol_name = sc_consensus_grandpa::protocol_standard_name(
+		&client.block_hash(0)?.expect("Genesis block exists; qed"),
+		&config.chain_spec,
+	);
+	let (_grandpa_protocol_config, grandpa_notification_service) =
+		sc_consensus_grandpa::grandpa_peers_set_config(grandpa_protocol_name.clone());
+
 	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		rpc_builder,
 		network: network.clone(),
@@ -294,6 +301,7 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
 			link: grandpa_link,
 			network,
 			sync: sync_service,
+			notification_service: grandpa_notification_service,
 			voting_rule: sc_consensus_grandpa::VotingRulesBuilder::default().build(),
 			prometheus_registry,
 			shared_voter_state: SharedVoterState::empty(),

@@ -13,48 +13,82 @@ version = '3.0.0'
 [package.metadata.docs.rs]
 targets = ['x86_64-unknown-linux-gnu']
 
+[package.metadata.deppatcher.originals.dependencies]
+frame-benchmarking = { version = "25.0.0" }
+frame-benchmarking-cli = { version = "29.0.0" }
+pallet-transaction-payment-rpc = { version = "27.0.0" }
+sc-basic-authorship = { version = "0.31.0" }
+sc-cli = { version = "0.33.0" }
+sc-client-api = { version = "25.0.0" }
+sc-consensus = { version = "0.30.0" }
+sc-consensus-aura = { version = "0.31.0" }
+sc-consensus-grandpa = { version = "0.16.0" }
+sc-executor = { version = "0.29.0" }
+sc-keystore = { version = "22.0.0" }
+sc-network = { version = "0.31.0" }
+sc-rpc = { version = "26.0.0" }
+sc-rpc-api = { version = "0.30.0" }
+sc-service = { version = "0.32.0" }
+sc-telemetry = { version = "12.0.0" }
+sc-transaction-pool = { version = "25.0.0" }
+sc-transaction-pool-api = { version = "25.0.0" }
+sp-api = { version = "23.0.0" }
+sp-block-builder = { version = "23.0.0" }
+sp-blockchain = { version = "25.0.0" }
+sp-consensus = { version = "0.29.0" }
+sp-consensus-aura = { version = "0.29.0" }
+sp-consensus-grandpa = { version = "10.0.0" }
+sp-core = { version = "25.0.0" }
+sp-runtime = { version = "28.0.0" }
+sp-timestamp = { version = "23.0.0" }
+substrate-frame-rpc-system = { version = "25.0.0" }
+
+[package.metadata.deppatcher.originals.build-dependencies]
+substrate-build-script-utils = { version = "9.0.0" }
+
 [[bin]]
 name = 'node-template'
 
 [build-dependencies]
-substrate-build-script-utils = "9.0.0"
+substrate-build-script-utils = "11.0.0"
 
 [dependencies]
 clap = "4.4.6"
 flexi_logger = "0.27.2"
-frame-benchmarking = "25.0.0"
-frame-benchmarking-cli = "29.0.0"
+frame-benchmarking = "31.0.0"
+frame-benchmarking-cli = "35.0.0"
 futures = "0.3.28"
-jsonrpsee = { version = "0.16.3", features = ["server"] }
+jsonrpsee = { version = "0.22.3", features = ["server"] }
 log = "0.4.20"
 node-template-runtime = { path = "../runtime" }
-pallet-transaction-payment-rpc = "27.0.0"
+pallet-transaction-payment-rpc = "33.0.0"
 parking_lot = '0.12.1'
-sc-basic-authorship = "0.31.0"
-sc-cli = "0.33.0"
-sc-client-api = "25.0.0"
-sc-consensus = "0.30.0"
-sc-consensus-aura = "0.31.0"
-sc-consensus-grandpa = "0.16.0"
-sc-executor = "0.29.0"
-sc-keystore = "22.0.0"
-sc-network = "0.31.0"
-sc-rpc = "26.0.0"
-sc-rpc-api = "0.30.0"
-sc-service = "0.32.0"
-sc-telemetry = "12.0.0"
-sc-transaction-pool = "25.0.0"
-sc-transaction-pool-api = "25.0.0"
-sp-api = "23.0.0"
-sp-block-builder = "23.0.0"
-sp-blockchain = "25.0.0"
-sp-consensus = "0.29.0"
-sp-consensus-aura = "0.29.0"
-sp-consensus-grandpa = "10.0.0"
-sp-core = "25.0.0"
-sp-runtime = "28.0.0"
-sp-timestamp = "23.0.0"
-substrate-frame-rpc-system = "25.0.0"
+sc-basic-authorship = "0.37.0"
+sc-cli = "0.39.0"
+sc-client-api = "31.0.0"
+sc-consensus = "0.36.0"
+sc-consensus-aura = "0.37.0"
+sc-consensus-grandpa = "0.22.0"
+sc-executor = "0.35.0"
+sc-keystore = "28.0.0"
+sc-network = "0.37.0"
+sc-rpc = "32.0.0"
+sc-rpc-api = "0.36.0"
+sc-service = "0.38.0"
+sc-telemetry = "17.0.0"
+sc-transaction-pool = "31.0.0"
+sc-transaction-pool-api = "31.0.0"
+serde_json = "1.0.115"
+sp-api = "29.0.0"
+sp-block-builder = "29.0.0"
+sp-blockchain = "31.0.0"
+sp-consensus = "0.35.0"
+sp-consensus-aura = "0.35.0"
+sp-consensus-grandpa = "16.0.0"
+sp-core = "31.0.0"
+sp-runtime = "34.0.0"
+sp-timestamp = "29.0.0"
+substrate-frame-rpc-system = "31.0.0"
 
 [features]
 default = []
