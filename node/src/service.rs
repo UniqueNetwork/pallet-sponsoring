@@ -1,12 +1,10 @@
 //! Service and ServiceFactory implementation. Specialized wrapper over substrate service.
-
 use std::{sync::Arc, time::Duration};
 
 use node_template_runtime::{opaque::Block, RuntimeApi};
-use sc_client_api::{HeaderBackend, BlockBackend};
+use sc_client_api::HeaderBackend;
 use sc_consensus_aura::{ImportQueueParams, SlotProportion, StartAuraParams};
 use sc_consensus_grandpa::SharedVoterState;
-pub use sc_executor::NativeElseWasmExecutor;
 use sc_service::{error::Error as ServiceError, Configuration, TaskManager};
 use sc_telemetry::{Telemetry, TelemetryWorker};
 use sc_transaction_pool_api::OffchainTransactionPoolFactory;
@@ -24,7 +22,7 @@ impl sc_executor::NativeExecutionDispatch for ExecutorDispatch {
 	/// Otherwise we only use the default Substrate host functions.
 	#[cfg(not(feature = "runtime-benchmarks"))]
 	type ExtendHostFunctions = ();
-
+	//TODO: Should this be implemented in new HostFunctions?
 	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
 		node_template_runtime::api::dispatch(method, data)
 	}
@@ -34,33 +32,28 @@ impl sc_executor::NativeExecutionDispatch for ExecutorDispatch {
 	}
 }
 
-type FullClient =
-	sc_service::TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<ExecutorDispatch>>;
+pub(crate) type FullClient = sc_service::TFullClient<
+	Block,
+	RuntimeApi,
+	sc_executor::WasmExecutor<sp_io::SubstrateHostFunctions>,
+>;
 type FullBackend = sc_service::TFullBackend<Block>;
 type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
 
-pub fn new_partial(
-	config: &Configuration,
-) -> Result<
-	sc_service::PartialComponents<
-		FullClient,
-		FullBackend,
-		FullSelectChain,
-		sc_consensus::DefaultImportQueue<Block>,
-		sc_transaction_pool::FullPool<Block, FullClient>,
-		(
-			sc_consensus_grandpa::GrandpaBlockImport<
-				FullBackend,
-				Block,
-				FullClient,
-				FullSelectChain,
-			>,
-			sc_consensus_grandpa::LinkHalf<Block, FullClient, FullSelectChain>,
-			Option<Telemetry>,
-		),
-	>,
-	ServiceError,
-> {
+pub type Service = sc_service::PartialComponents<
+	FullClient,
+	FullBackend,
+	FullSelectChain,
+	sc_consensus::DefaultImportQueue<Block>,
+	sc_transaction_pool::FullPool<Block, FullClient>,
+	(
+		sc_consensus_grandpa::GrandpaBlockImport<FullBackend, Block, FullClient, FullSelectChain>,
+		sc_consensus_grandpa::LinkHalf<Block, FullClient, FullSelectChain>,
+		Option<Telemetry>,
+	),
+>;
+
+pub fn new_partial(config: &Configuration) -> Result<Service, ServiceError> {
 	let telemetry = config
 		.telemetry_endpoints
 		.clone()
@@ -72,7 +65,7 @@ pub fn new_partial(
 		})
 		.transpose()?;
 
-	let executor = sc_service::new_native_or_wasm_executor(config);
+	let executor = sc_service::new_wasm_executor::<sp_io::SubstrateHostFunctions>(config);
 
 	let (client, backend, keystore_container, task_manager) =
 		sc_service::new_full_parts::<Block, RuntimeApi, _>(
@@ -107,23 +100,29 @@ pub fn new_partial(
 		telemetry.as_ref().map(|x| x.handle()),
 	)?;
 
-	let slot_duration = sc_consensus_aura::slot_duration(&*client)?;
-
+	let cidp_client = client.clone();
 	let import_queue =
 		sc_consensus_aura::import_queue::<AuraPair, _, _, _, _, _>(ImportQueueParams {
 			block_import: grandpa_block_import.clone(),
 			justification_import: Some(Box::new(grandpa_block_import.clone())),
 			client: client.clone(),
-			create_inherent_data_providers: move |_, ()| async move {
-				let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
+			create_inherent_data_providers: move |parent_hash, _| {
+				let cidp_client = cidp_client.clone();
+				async move {
+					let slot_duration = sc_consensus_aura::standalone::slot_duration_at(
+						&*cidp_client,
+						parent_hash,
+					)?;
+					let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
 
-				let slot =
-					sp_consensus_aura::inherents::InherentDataProvider::from_timestamp_and_slot_duration(
-						*timestamp,
-						slot_duration,
-					);
+					let slot =
+						sp_consensus_aura::inherents::InherentDataProvider::from_timestamp_and_slot_duration(
+							*timestamp,
+							slot_duration,
+						);
 
-				Ok((slot, timestamp))
+					Ok((slot, timestamp))
+				}
 			},
 			spawner: &task_manager.spawn_essential_handle(),
 			registry: config.prometheus_registry(),
@@ -145,7 +144,11 @@ pub fn new_partial(
 }
 
 /// Builds a new service for a full client.
-pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
+pub fn new_full<
+	N: sc_network::NetworkBackend<Block, <Block as sp_runtime::traits::Block>::Hash>,
+>(
+	config: Configuration
+) -> Result<TaskManager, ServiceError> {
 	let sc_service::PartialComponents {
 		client,
 		backend,
@@ -157,12 +160,26 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
 		other: (block_import, grandpa_link, mut telemetry),
 	} = new_partial(&config)?;
 
-	let protocol_name = sc_consensus_grandpa::protocol_standard_name(
+	let mut net_config = sc_network::config::FullNetworkConfiguration::<
+		Block,
+		<Block as sp_runtime::traits::Block>::Hash,
+		N,
+	>::new(&config.network);
+	let metrics = N::register_notification_metrics(config.prometheus_registry());
+
+	let peer_store_handle = net_config.peer_store_handle();
+	let grandpa_protocol_name = sc_consensus_grandpa::protocol_standard_name(
 		&client.info().genesis_hash,
 		&config.chain_spec,
 	);
-
-	let net_config = sc_network::config::FullNetworkConfiguration::new(&config.network);
+	let (grandpa_protocol_config, grandpa_notification_service) =
+		sc_consensus_grandpa::grandpa_peers_set_config::<_, N>(
+			grandpa_protocol_name.clone(),
+			metrics.clone(),
+			peer_store_handle,
+		);
+	
+	net_config.add_notification_protocol(grandpa_protocol_config);
 
 	let (network, system_rpc_tx, tx_handler_controller, network_starter, sync_service) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
@@ -175,6 +192,7 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
 			block_announce_validator_builder: None,
 			warp_sync_params: None,
 			block_relay: None,
+			metrics,
 		})?;
 
 	let role = config.role.clone();
@@ -184,7 +202,7 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
 	let enable_grandpa = !config.disable_grandpa;
 	let prometheus_registry = config.prometheus_registry().cloned();
 
-	let rpc_builder = {
+	let rpc_extensions_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
 
@@ -199,21 +217,14 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
 		})
 	};
 
-	let grandpa_protocol_name = sc_consensus_grandpa::protocol_standard_name(
-		&client.block_hash(0)?.expect("Genesis block exists; qed"),
-		&config.chain_spec,
-	);
-	let (_grandpa_protocol_config, grandpa_notification_service) =
-		sc_consensus_grandpa::grandpa_peers_set_config(grandpa_protocol_name.clone());
-
 	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
-		rpc_builder,
 		network: network.clone(),
 		sync_service: sync_service.clone(),
 		client: client.clone(),
 		keystore: keystore_container.keystore(),
 		task_manager: &mut task_manager,
 		transaction_pool: transaction_pool.clone(),
+		rpc_builder: rpc_extensions_builder,
 		backend,
 		system_rpc_tx,
 		config,
@@ -235,7 +246,7 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
 		let aura = sc_consensus_aura::start_aura::<AuraPair, _, _, _, _, _, _, _, _, _, _>(
 			StartAuraParams {
 				slot_duration,
-				client: client.clone(),
+				client,
 				select_chain,
 				block_import,
 				proposer_factory,
@@ -286,7 +297,7 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
 		keystore,
 		local_role: role,
 		telemetry: telemetry.as_ref().map(|x| x.handle()),
-		protocol_name,
+		protocol_name: grandpa_protocol_name,
 	};
 
 	if enable_grandpa {
@@ -300,8 +311,8 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
 			config: grandpa_config,
 			link: grandpa_link,
 			network,
-			sync: sync_service,
 			notification_service: grandpa_notification_service,
+			sync: Arc::new(sync_service),
 			voting_rule: sc_consensus_grandpa::VotingRulesBuilder::default().build(),
 			prometheus_registry,
 			shared_voter_state: SharedVoterState::empty(),

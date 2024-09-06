@@ -53,42 +53,46 @@ name = 'node-template'
 substrate-build-script-utils = "11.0.0"
 
 [dependencies]
-clap = "4.4.6"
-flexi_logger = "0.27.2"
-frame-benchmarking = "31.0.0"
-frame-benchmarking-cli = "35.0.0"
-futures = "0.3.28"
-jsonrpsee = { version = "0.22.3", features = ["server"] }
-log = "0.4.20"
-node-template-runtime = { path = "../runtime" }
-pallet-transaction-payment-rpc = "33.0.0"
-parking_lot = '0.12.1'
-sc-basic-authorship = "0.37.0"
-sc-cli = "0.39.0"
-sc-client-api = "31.0.0"
-sc-consensus = "0.36.0"
-sc-consensus-aura = "0.37.0"
-sc-consensus-grandpa = "0.22.0"
-sc-executor = "0.35.0"
-sc-keystore = "28.0.0"
-sc-network = "0.37.0"
-sc-rpc = "32.0.0"
-sc-rpc-api = "0.36.0"
-sc-service = "0.38.0"
-sc-telemetry = "17.0.0"
-sc-transaction-pool = "31.0.0"
-sc-transaction-pool-api = "31.0.0"
-serde_json = "1.0.115"
-sp-api = "29.0.0"
-sp-block-builder = "29.0.0"
-sp-blockchain = "31.0.0"
-sp-consensus = "0.35.0"
-sp-consensus-aura = "0.35.0"
-sp-consensus-grandpa = "16.0.0"
-sp-core = "31.0.0"
-sp-runtime = "34.0.0"
-sp-timestamp = "29.0.0"
-substrate-frame-rpc-system = "31.0.0"
+clap = { workspace = true }
+flexi_logger = { workspace = true }
+futures = { workspace = true }
+jsonrpsee = { workspace = true }
+log = { workspace = true }
+parking_lot = { workspace = true }
+serde_json = { workspace = true }
+
+node-template-runtime = { workspace = true }
+frame-benchmarking = { workspace = true }
+frame-benchmarking-cli = { workspace = true }
+pallet-transaction-payment-rpc = { workspace = true }
+sc-basic-authorship = { workspace = true }
+sc-cli = { workspace = true }
+sc-client-api = { workspace = true }
+sc-consensus = { workspace = true }
+sc-consensus-aura = { workspace = true }
+sc-executor = { workspace = true }
+sc-consensus-grandpa = { workspace = true }
+sc-keystore = { workspace = true }
+sc-network = { workspace = true }
+sc-offchain = { workspace = true }
+sc-rpc = { workspace = true }
+sc-rpc-api = { workspace = true }
+sc-service = { workspace = true }
+sc-telemetry = { workspace = true }
+sc-transaction-pool = { workspace = true }
+sc-transaction-pool-api = { workspace = true }
+sp-api = { workspace = true }
+sp-block-builder = { workspace = true }
+sp-blockchain = { workspace = true }
+sp-consensus = { workspace = true }
+sp-consensus-aura = { workspace = true }
+sp-core = { workspace = true }
+sp-consensus-grandpa = { workspace = true }
+sp-io = { workspace = true }
+sp-runtime = { workspace = true }
+sp-timestamp = { workspace = true }
+substrate-frame-rpc-system = { workspace = true }
+
 
 [features]
 default = []

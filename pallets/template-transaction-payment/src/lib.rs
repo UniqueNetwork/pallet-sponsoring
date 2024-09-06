@@ -45,30 +45,30 @@ mod pallet {
 	pub struct Pallet<T>(_);
 }
 
-type BalanceOf<T> = <<T as pallet_transaction_payment::Config>::OnChargeTransaction as pallet_transaction_payment::OnChargeTransaction<T>>::Balance;
+	type BalanceOf<T> = <<T as pallet_transaction_payment::Config>::OnChargeTransaction as pallet_transaction_payment::OnChargeTransaction<T>>::Balance;
 
-/// Require the transactor pay for themselves and maybe include a tip to gain additional priority
-/// in the queue.
-#[derive(Encode, Decode, Clone, Eq, PartialEq, TypeInfo)]
-pub struct ChargeTransactionPayment<T: Config>(#[codec(compact)] BalanceOf<T>);
+	/// Require the transactor pay for themselves and maybe include a tip to gain additional priority
+	/// in the queue.
+	#[derive(Encode, Decode, Clone, Eq, PartialEq, TypeInfo)]
+	pub struct ChargeTransactionPayment<T: Config>(#[codec(compact)] BalanceOf<T>);
 
-impl<T: Config + Send + Sync> ChargeTransactionPayment<T> {
-	/// Create new `SignedExtension`
-	pub fn new(tip: BalanceOf<T>) -> Self {
-		Self(tip)
+	impl<T: Config + Send + Sync> ChargeTransactionPayment<T> {
+		/// Create new `SignedExtension`
+		pub fn new(tip: BalanceOf<T>) -> Self {
+			Self(tip)
+		}
 	}
-}
 
-impl<T: Config + Send + Sync> sp_std::fmt::Debug for ChargeTransactionPayment<T> {
-	#[cfg(feature = "std")]
-	fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
-		write!(f, "ChargeTransactionPayment<{:?}>", self.0)
+	impl<T: Config + Send + Sync> sp_std::fmt::Debug for ChargeTransactionPayment<T> {
+		#[cfg(feature = "std")]
+		fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
+			write!(f, "ChargeTransactionPayment<{:?}>", self.0)
+		}
+		#[cfg(not(feature = "std"))]
+		fn fmt(&self, _: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
+			Ok(())
+		}
 	}
-	#[cfg(not(feature = "std"))]
-	fn fmt(&self, _: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
-		Ok(())
-	}
-}
 
 impl<T: Config> ChargeTransactionPayment<T>
 where
@@ -121,16 +121,16 @@ where
 		let tip = self.0;
 		let fee = Self::traditional_fee(len, info, tip);
 
-		// Determine who is paying transaction fee based on ecnomic model
-		// Parse call to extract collection ID and access collection sponsor
-		let sponsor = T::SponsorshipHandler::get_sponsor(who, call);
-		let who_pays_fee = sponsor.unwrap_or_else(|| who.clone());
+			// Determine who is paying transaction fee based on ecnomic model
+			// Parse call to extract collection ID and access collection sponsor
+			let sponsor = T::SponsorshipHandler::get_sponsor(who, call);
+			let who_pays_fee = sponsor.unwrap_or_else(|| who.clone());
 
-		let liquidity_info = <<T as pallet_transaction_payment::Config>::OnChargeTransaction as pallet_transaction_payment::OnChargeTransaction<T>>::withdraw_fee(&who_pays_fee, call, info, fee, tip)?;
+			let liquidity_info = <<T as pallet_transaction_payment::Config>::OnChargeTransaction as pallet_transaction_payment::OnChargeTransaction<T>>::withdraw_fee(&who_pays_fee, call, info, fee, tip)?;
 
-		Ok((fee, who_pays_fee, liquidity_info))
+			Ok((fee, who_pays_fee, liquidity_info))
+		}
 	}
-}
 
 impl<T: Config + Send + Sync + TypeInfo> SignedExtension for ChargeTransactionPayment<T>
 where
@@ -167,16 +167,16 @@ where
 		})
 	}
 
-	fn pre_dispatch(
-		self,
-		who: &Self::AccountId,
-		call: &Self::Call,
-		info: &DispatchInfoOf<Self::Call>,
-		len: usize,
-	) -> Result<Self::Pre, TransactionValidityError> {
-		let (_fee, who_pays_fee, imbalance) = self.withdraw_fee(who, call, info, len)?;
-		Ok((self.0, who_pays_fee, imbalance))
-	}
+		fn pre_dispatch(
+			self,
+			who: &Self::AccountId,
+			call: &Self::Call,
+			info: &DispatchInfoOf<Self::Call>,
+			len: usize,
+		) -> Result<Self::Pre, TransactionValidityError> {
+			let (_fee, who_pays_fee, imbalance) = self.withdraw_fee(who, call, info, len)?;
+			Ok((self.0, who_pays_fee, imbalance))
+		}
 
 	fn post_dispatch(
 		pre: Option<Self::Pre>,

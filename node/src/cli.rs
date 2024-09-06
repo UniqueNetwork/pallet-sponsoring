@@ -1,9 +1,9 @@
 use clap::Parser;
 use sc_cli::RunCmd;
 
-#[derive(Debug, Parser)]
+#[derive(Debug, clap::Parser)]
 pub struct Cli {
-	#[clap(subcommand)]
+	#[command(subcommand)]
 	pub subcommand: Option<Subcommand>,
 
 	#[clap(flatten)]

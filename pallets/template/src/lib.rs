@@ -15,18 +15,24 @@ mod tests;
 mod benchmarking;
 
 mod sponsorship;
+
+pub mod weights;
+
+pub use weights::WeightInfo;
 pub use sponsorship::NftSponsorshipHandler;
 
 #[frame_support::pallet]
 pub mod pallet {
+	use super::*;
 	use frame_support::{dispatch::DispatchResult, pallet_prelude::*};
 	use frame_system::pallet_prelude::*;
 
 	/// Configure the pallet by specifying the parameters and types on which it depends.
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
-		/// Because this pallet emits events, it depends on the runtime's definition of an event.
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
+		/// Events compatible with [`frame_system::Config::Event`].
+		type RuntimeEvent: IsType<<Self as frame_system::Config>::RuntimeEvent> + From<Event<Self>>;
+		type WeightInfo: crate::weights::WeightInfo;
 	}
 
 	#[pallet::pallet]
@@ -68,7 +74,7 @@ pub mod pallet {
 		/// storage and emits an event. This function must be dispatched by a signed extrinsic.
 		#[allow(unused_variables)]
 		#[pallet::call_index(0)]
-		#[pallet::weight(10_000 + T::DbWeight::get().writes(1).ref_time())]
+		#[pallet::weight(T::WeightInfo::do_something())]
 		pub fn do_something(
 			origin: OriginFor<T>,
 			something: u32,
@@ -90,7 +96,7 @@ pub mod pallet {
 
 		/// An example dispatchable that may throw a custom error.
 		#[pallet::call_index(1)]
-		#[pallet::weight(10_000 + T::DbWeight::get().reads_writes(1,1).ref_time())]
+		#[pallet::weight(T::WeightInfo::cause_error())]
 		pub fn cause_error(origin: OriginFor<T>) -> DispatchResult {
 			let _who = ensure_signed(origin)?;
 
