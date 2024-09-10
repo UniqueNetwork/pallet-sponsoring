@@ -10,6 +10,7 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 pub use frame_support::{
 	construct_runtime,
 	dispatch::DispatchInfo,
+	genesis_builder_helper::{build_state, get_preset},
 	parameter_types,
 	traits::{KeyOwnerProofSystem, Randomness, StorageInfo},
 	weights::{
@@ -20,18 +21,18 @@ pub use frame_support::{
 	},
 	StorageValue,
 };
-use frame_support::{derive_impl, traits::ConstU32, weights::ConstantMultiplier};
+use frame_support::{derive_impl, traits::{ConstBool, ConstU32, ConstU64}, weights::ConstantMultiplier};
 pub use pallet_balances::Call as BalancesCall;
 use pallet_grandpa::{
 	fg_primitives, AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList,
 };
 pub use pallet_timestamp::Call as TimestampCall;
 pub use pallet_transaction_payment::{
-	CurrencyAdapter, FeeDetails, Multiplier, RuntimeDispatchInfo, TargetedFeeAdjustment,
+	FeeDetails, FungibleAdapter, Multiplier, RuntimeDispatchInfo, TargetedFeeAdjustment,
 };
 use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
-use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata};
+use sp_core::OpaqueMetadata;
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 use sp_runtime::{
@@ -158,19 +159,13 @@ impl frame_system::Config for Runtime {
 	type BlockLength = BlockLength;
 	/// The identifier used to distinguish between accounts.
 	type AccountId = AccountId;
-	/// The aggregated dispatch type that is available for extrinsics.
-	type RuntimeCall = RuntimeCall;
-	/// The aggregated task type.
-	type RuntimeTask = RuntimeTask;
 	/// The lookup mechanism to get account ID from whatever is passed in dispatchers.
 	type Lookup = AccountIdLookup<AccountId, ()>;
 	/// The type for hashing blocks and tries.
 	type Hash = Hash;
-	type Block = Block;
 	/// The hashing algorithm used.
 	type Hashing = BlakeTwo256;
-	/// Account nonce.
-	type Nonce = u32;
+	type Block = Block;
 	/// The ubiquitous event type.
 	type RuntimeEvent = RuntimeEvent;
 	/// The ubiquitous origin type.
@@ -211,6 +206,7 @@ impl pallet_aura::Config for Runtime {
 	type DisabledValidators = ();
 	type MaxAuthorities = MaxAuthorities;
 	type AllowMultipleBlocksPerSlot = ConstBool<false>;
+	type SlotDuration = ConstU64<SLOT_DURATION>;
 }
 
 impl pallet_grandpa::Config for Runtime {
@@ -268,7 +264,7 @@ parameter_types! {
 
 impl pallet_transaction_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type OnChargeTransaction = CurrencyAdapter<Balances, ()>;
+	type OnChargeTransaction = FungibleAdapter<Balances, ()>;
 	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
 	type WeightToFee = IdentityFee<Balance>;
 	type FeeMultiplierUpdate = ();
@@ -411,7 +407,7 @@ impl_runtime_apis! {
 		}
 
 		fn authorities() -> Vec<AuraId> {
-			Aura::authorities().into_inner()
+			pallet_aura::Authorities::<Runtime>::get().into_inner()
 		}
 	}
 
@@ -422,7 +418,7 @@ impl_runtime_apis! {
 
 		fn decode_session_keys(
 			encoded: Vec<u8>,
-		) -> Option<Vec<(Vec<u8>, KeyTypeId)>> {
+		) -> Option<Vec<(Vec<u8>, sp_core::crypto::KeyTypeId)>> {
 			opaque::SessionKeys::decode_into_raw_public_keys(&encoded)
 		}
 	}

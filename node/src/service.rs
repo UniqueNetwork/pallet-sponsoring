@@ -145,7 +145,11 @@ pub fn new_partial(
 }
 
 /// Builds a new service for a full client.
-pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
+pub fn new_full<
+	N: sc_network::NetworkBackend<Block, <Block as sp_runtime::traits::Block>::Hash>,
+>(
+	config: Configuration
+) -> Result<TaskManager, ServiceError> {
 	let sc_service::PartialComponents {
 		client,
 		backend,
@@ -157,12 +161,26 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
 		other: (block_import, grandpa_link, mut telemetry),
 	} = new_partial(&config)?;
 
-	let protocol_name = sc_consensus_grandpa::protocol_standard_name(
+	let mut net_config = sc_network::config::FullNetworkConfiguration::<
+		Block,
+		<Block as sp_runtime::traits::Block>::Hash,
+		N,
+	>::new(&config.network);
+	let metrics = N::register_notification_metrics(config.prometheus_registry());
+
+	let peer_store_handle = net_config.peer_store_handle();
+	let grandpa_protocol_name = sc_consensus_grandpa::protocol_standard_name(
 		&client.info().genesis_hash,
 		&config.chain_spec,
 	);
-
-	let net_config = sc_network::config::FullNetworkConfiguration::new(&config.network);
+	let (grandpa_protocol_config, grandpa_notification_service) =
+		sc_consensus_grandpa::grandpa_peers_set_config::<_, N>(
+			grandpa_protocol_name.clone(),
+			metrics.clone(),
+			peer_store_handle,
+		);
+	
+	net_config.add_notification_protocol(grandpa_protocol_config);
 
 	let (network, system_rpc_tx, tx_handler_controller, network_starter, sync_service) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
@@ -175,6 +193,7 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
 			block_announce_validator_builder: None,
 			warp_sync_params: None,
 			block_relay: None,
+			metrics,
 		})?;
 
 	let role = config.role.clone();
@@ -184,7 +203,7 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
 	let enable_grandpa = !config.disable_grandpa;
 	let prometheus_registry = config.prometheus_registry().cloned();
 
-	let rpc_builder = {
+	let rpc_extensions_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
 
@@ -199,15 +218,8 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
 		})
 	};
 
-	let grandpa_protocol_name = sc_consensus_grandpa::protocol_standard_name(
-		&client.block_hash(0)?.expect("Genesis block exists; qed"),
-		&config.chain_spec,
-	);
-	let (_grandpa_protocol_config, grandpa_notification_service) =
-		sc_consensus_grandpa::grandpa_peers_set_config(grandpa_protocol_name.clone());
-
 	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
-		rpc_builder,
+		rpc_builder: rpc_extensions_builder,
 		network: network.clone(),
 		sync_service: sync_service.clone(),
 		client: client.clone(),
@@ -286,7 +298,7 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
 		keystore,
 		local_role: role,
 		telemetry: telemetry.as_ref().map(|x| x.handle()),
-		protocol_name,
+		protocol_name: grandpa_protocol_name,
 	};
 
 	if enable_grandpa {
