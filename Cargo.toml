@@ -11,7 +11,7 @@ codec = { default-features = false, features = ['derive'], package = 'parity-sca
 flexi_logger = "0.22.5"
 futures = "0.3.17"
 hex-literal = "0.3.1"
-jsonrpsee = { version = "0.23.2", features = ["server"] }
+jsonrpsee = { version = "0.24.7", features = ["server"] }
 log = "0.4.14"
 parking_lot = "0.12.1"
 serde = { version = "1.0.130", default-features = false }
