@@ -21,7 +21,11 @@ pub use frame_support::{
 	},
 	StorageValue,
 };
-use frame_support::{derive_impl, traits::{ConstBool, ConstU32, ConstU64}, weights::ConstantMultiplier};
+use frame_support::{
+	derive_impl,
+	traits::{ConstBool, ConstU32, ConstU64},
+	weights::ConstantMultiplier,
+};
 pub use pallet_balances::Call as BalancesCall;
 use pallet_grandpa::{
 	fg_primitives, AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList,
@@ -39,7 +43,7 @@ use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT, IdentifyAccount, NumberFor, Verify},
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, MultiSignature, ExtrinsicInclusionMode,
+	ApplyExtrinsicResult, ExtrinsicInclusionMode, MultiSignature,
 };
 pub use sp_runtime::{Perbill, Permill};
 use sp_std::prelude::*;
@@ -61,7 +65,7 @@ pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::Account
 pub type Balance = u128;
 
 /// Index of a transaction in the chain.
-pub type Index = u32;
+pub type Nonce = u32;
 
 /// A hash of some data used by the chain.
 pub type Hash = sp_core::H256;
@@ -104,7 +108,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	//   the compatible custom types.
 	spec_version: 100,
 	impl_version: 1,
-	state_version: 1,
+	system_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
 };
@@ -161,6 +165,8 @@ impl frame_system::Config for Runtime {
 	type AccountId = AccountId;
 	/// The lookup mechanism to get account ID from whatever is passed in dispatchers.
 	type Lookup = AccountIdLookup<AccountId, ()>;
+	/// The index type for storing how many extrinsics an account has signed.
+	type Nonce = Nonce;
 	/// The type for hashing blocks and tries.
 	type Hash = Hash;
 	/// The hashing algorithm used.
@@ -255,7 +261,8 @@ impl pallet_balances::Config for Runtime {
 	type RuntimeFreezeReason = RuntimeFreezeReason;
 	type FreezeIdentifier = [u8; 8];
 	type MaxFreezes = ();
-	type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = pallet_balances::weights::SubstrateWeight<Self>;
+	type DoneSlashHandler = ();
 }
 
 parameter_types! {
@@ -270,6 +277,7 @@ impl pallet_transaction_payment::Config for Runtime {
 	type WeightToFee = IdentityFee<Balance>;
 	type FeeMultiplierUpdate = ();
 	type OperationalFeeMultiplier = OperationalFeeMultiplier;
+	type WeightInfo = pallet_transaction_payment::weights::SubstrateWeight<Self>;
 }
 
 impl pallet_sudo::Config for Runtime {
@@ -456,8 +464,8 @@ impl_runtime_apis! {
 		}
 	}
 
-	impl frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Index> for Runtime {
-		fn account_nonce(account: AccountId) -> Index {
+	impl frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Nonce> for Runtime {
+		fn account_nonce(account: AccountId) -> Nonce {
 			System::account_nonce(account)
 		}
 	}
