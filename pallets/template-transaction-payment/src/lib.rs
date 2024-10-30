@@ -11,7 +11,7 @@ pub use std::*;
 use codec::{Decode, Encode};
 use frame_support::{
 	dispatch::{DispatchClass, DispatchInfo, PostDispatchInfo},
-	traits::Get,
+	traits::{Get, OriginTrait},
 };
 pub use pallet::*;
 use pallet_transaction_payment::OnChargeTransaction;
@@ -20,14 +20,14 @@ use scale_info::TypeInfo;
 pub use serde::*;
 use sp_runtime::{
 	traits::{
-		DispatchInfoOf, Dispatchable, One, PostDispatchInfoOf, SaturatedConversion, Saturating,
-		SignedExtension,
+		DispatchInfoOf, DispatchOriginOf, Dispatchable, One, PostDispatchInfoOf, SaturatedConversion, Saturating,
+		TransactionExtension, ValidateResult
 	},
 	transaction_validity::{
-		InvalidTransaction, TransactionLongevity, TransactionPriority, TransactionValidity,
+		InvalidTransaction, TransactionLongevity, TransactionPriority,
 		TransactionValidityError, ValidTransaction,
 	},
-	DispatchResult, FixedPointOperand,
+	DispatchResult, FixedPointOperand, Weight
 };
 use sp_std::prelude::*;
 use up_sponsorship::SponsorshipHandler;
@@ -53,7 +53,7 @@ mod pallet {
 	pub struct ChargeTransactionPayment<T: Config>(#[codec(compact)] BalanceOf<T>);
 
 	impl<T: Config + Send + Sync> ChargeTransactionPayment<T> {
-		/// Create new `SignedExtension`
+		/// Create new `TransactionExtension`
 		pub fn new(tip: BalanceOf<T>) -> Self {
 			Self(tip)
 		}
@@ -132,68 +132,81 @@ where
 		}
 	}
 
-impl<T: Config + Send + Sync + TypeInfo> SignedExtension for ChargeTransactionPayment<T>
+impl<T: Config + Send + Sync + TypeInfo> TransactionExtension<T::RuntimeCall> for ChargeTransactionPayment<T>
 where
 	BalanceOf<T>: Send + Sync + From<u64> + FixedPointOperand,
 	T::RuntimeCall: Dispatchable<Info = DispatchInfo, PostInfo = PostDispatchInfo>,
 {
-	const IDENTIFIER: &'static str = "ChargeTransactionPayment";
-	type AccountId = T::AccountId;
-	type Call = T::RuntimeCall;
-	type AdditionalSigned = ();
+	const IDENTIFIER: &'static str = "FakeTransactionFinalizer";
+
+	type Implicit = ();
+
 	type Pre = (
-        // tip
-        BalanceOf<T>,
-        // who pays fee
-        Self::AccountId,
+		// tip
+		BalanceOf<T>,
+		// who pays fee
+		T::AccountId,
 		// imbalance resulting from withdrawing the fee
 		<<T as pallet_transaction_payment::Config>::OnChargeTransaction as pallet_transaction_payment::OnChargeTransaction<T>>::LiquidityInfo,
-    );
-	fn additional_signed(&self) -> sp_std::result::Result<(), TransactionValidityError> {
-		Ok(())
-	}
+	);
 
+	type Val = ();
+
+	fn weight(&self, _call: &T::RuntimeCall) -> Weight {
+		Weight::zero()
+	}
+	
 	fn validate(
 		&self,
-		who: &Self::AccountId,
-		call: &Self::Call,
-		info: &DispatchInfoOf<Self::Call>,
+		origin: DispatchOriginOf<T::RuntimeCall>,
+		call: &T::RuntimeCall,
+		info: &DispatchInfoOf<T::RuntimeCall>,
 		len: usize,
-	) -> TransactionValidity {
+		_self_implicit: Self::Implicit,
+		_inherited_implication: &impl Encode,
+	) -> ValidateResult<Self::Val, T::RuntimeCall> {
+		//TODO: do we need to switch to DispatchOriginOf instead of AccountID?
+		let Some(who) = &origin.clone().into_signer() else {
+			return Err(TransactionValidityError::Invalid(InvalidTransaction::BadSigner));
+		};
 		let (fee, _, _) = self.withdraw_fee(who, call, info, len)?;
-		Ok(ValidTransaction {
+		Ok((ValidTransaction {
 			priority: Self::get_priority(len, info, fee),
 			..Default::default()
-		})
+		}, (), origin))
 	}
 
-		fn pre_dispatch(
-			self,
-			who: &Self::AccountId,
-			call: &Self::Call,
-			info: &DispatchInfoOf<Self::Call>,
-			len: usize,
-		) -> Result<Self::Pre, TransactionValidityError> {
-			let (_fee, who_pays_fee, imbalance) = self.withdraw_fee(who, call, info, len)?;
-			Ok((self.0, who_pays_fee, imbalance))
-		}
+	fn prepare(
+		self,
+		_val: Self::Val,
+		origin: &DispatchOriginOf<T::RuntimeCall>,
+		call: &T::RuntimeCall,
+		info: &DispatchInfoOf<T::RuntimeCall>,
+		len: usize,
+	) -> Result<Self::Pre, TransactionValidityError> {
+		let Some(who) = &origin.clone().into_signer() else {
+			return Err(TransactionValidityError::Invalid(InvalidTransaction::BadSigner));
+		};
+		let (_fee, who_pays_fee, imbalance) = self.withdraw_fee(who, call, info, len)?;
+		Ok((self.0, who_pays_fee, imbalance))
+	}
 
-	fn post_dispatch(
-		pre: Option<Self::Pre>,
-		info: &DispatchInfoOf<Self::Call>,
-		post_info: &PostDispatchInfoOf<Self::Call>,
+	fn post_dispatch_details(
+		pre: Self::Pre,
+		info: &DispatchInfoOf<T::RuntimeCall>,
+		post_info: &PostDispatchInfoOf<T::RuntimeCall>,
 		len: usize,
 		_result: &DispatchResult,
-	) -> Result<(), TransactionValidityError> {
-		if let Some((tip, who_pays_fee, imbalance)) = pre {
-			let actual_fee = pallet_transaction_payment::Pallet::<T>::compute_actual_fee(
-				len as u32, info, post_info, tip,
-			);
-			<T as pallet_transaction_payment::Config>::OnChargeTransaction::correct_and_deposit_fee(
-				&who_pays_fee, info, post_info, actual_fee, tip, imbalance,
-			)?;
-		}
-		Ok(())
+	) -> Result<Weight, TransactionValidityError> {
+		let (tip, who_pays_fee, imbalance) = pre;
+		let actual_fee = pallet_transaction_payment::Pallet::<T>::compute_actual_fee(
+			len as u32, info, post_info, tip,
+		);
+		//TODO: looks like we can just return unspent fee here instead of refunding in `correct_and_deposit_fee`
+		<T as pallet_transaction_payment::Config>::OnChargeTransaction::correct_and_deposit_fee(
+			&who_pays_fee, info, post_info, actual_fee, tip, imbalance,
+		)?;
+		Ok(Weight::zero())
 	}
 }
 
@@ -224,27 +237,67 @@ impl<T: Config> sp_std::fmt::Debug for CheckNonce<T> {
 	}
 }
 
-impl<T: Config> SignedExtension for CheckNonce<T>
+impl<T: Config> TransactionExtension<T::RuntimeCall> for CheckNonce<T>
 where
 	T::RuntimeCall: Dispatchable<Info = DispatchInfo>,
 {
-	type AccountId = T::AccountId;
-	type Call = T::RuntimeCall;
-	type AdditionalSigned = ();
+	type Implicit = ();
 	type Pre = ();
+	type Val = ();
 	const IDENTIFIER: &'static str = "CheckNonce";
 
-	fn additional_signed(&self) -> sp_std::result::Result<(), TransactionValidityError> {
-		Ok(())
+	fn weight(&self, _call: &T::RuntimeCall) -> Weight {
+		Weight::zero()
 	}
 
-	fn pre_dispatch(
-		self,
-		who: &Self::AccountId,
-		_call: &Self::Call,
-		_info: &DispatchInfoOf<Self::Call>,
+	fn validate(
+		&self,
+		origin: DispatchOriginOf<T::RuntimeCall>,
+		_call: &T::RuntimeCall,
+		_info: &DispatchInfoOf<T::RuntimeCall>,
 		_len: usize,
-	) -> Result<(), TransactionValidityError> {
+		_self_implicit: Self::Implicit,
+		_inherited_implication: &impl Encode,
+	) -> ValidateResult<Self::Val, T::RuntimeCall> {
+		let Some(who) = &origin.clone().into_signer() else {
+			return Err(TransactionValidityError::Invalid(InvalidTransaction::BadSigner));
+		};
+		let account = frame_system::Account::<T>::get(who);
+		// if account.providers.is_zero() && account.sufficients.is_zero() {
+		// 	// Nonce storage not paid for
+		// 	return InvalidTransaction::Payment.into();
+		// }
+		if self.0 < account.nonce {
+			return Err(TransactionValidityError::Invalid(InvalidTransaction::Stale));
+		}
+
+		let provides = vec![Encode::encode(&(who, self.0))];
+		let requires = if account.nonce < self.0 {
+			vec![Encode::encode(&(who, self.0 - One::one()))]
+		} else {
+			vec![]
+		};
+
+		Ok((ValidTransaction {
+			priority: 0,
+			requires,
+			provides,
+			longevity: TransactionLongevity::max_value(),
+			propagate: true,
+		}, (), origin))
+	}
+
+	fn prepare(
+		self,
+		_val: Self::Val,
+		origin: &DispatchOriginOf<T::RuntimeCall>,
+		_call: &T::RuntimeCall,
+		_info: &DispatchInfoOf<T::RuntimeCall>,
+		_len: usize,
+	) -> Result<Self::Pre, TransactionValidityError> {
+		let Some(who) = &origin.clone().into_signer() else {
+			return Err(TransactionValidityError::Invalid(InvalidTransaction::BadSigner));
+		};
 		let mut account = frame_system::Account::<T>::get(who);
 		// if account.providers.is_zero() && account.sufficients.is_zero() {
 		// 	// Nonce storage not paid for
@@ -261,37 +314,5 @@ where
 		account.nonce += T::Nonce::one();
 		frame_system::Account::<T>::insert(who, account);
 		Ok(())
-	}
-
-	fn validate(
-		&self,
-		who: &Self::AccountId,
-		_call: &Self::Call,
-		_info: &DispatchInfoOf<Self::Call>,
-		_len: usize,
-	) -> TransactionValidity {
-		let account = frame_system::Account::<T>::get(who);
-		// if account.providers.is_zero() && account.sufficients.is_zero() {
-		// 	// Nonce storage not paid for
-		// 	return InvalidTransaction::Payment.into();
-		// }
-		if self.0 < account.nonce {
-			return InvalidTransaction::Stale.into();
-		}
-
-		let provides = vec![Encode::encode(&(who, self.0))];
-		let requires = if account.nonce < self.0 {
-			vec![Encode::encode(&(who, self.0 - One::one()))]
-		} else {
-			vec![]
-		};
-
-		Ok(ValidTransaction {
-			priority: 0,
-			requires,
-			provides,
-			longevity: TransactionLongevity::max_value(),
-			propagate: true,
-		})
 	}
 }
