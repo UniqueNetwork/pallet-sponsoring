@@ -65,7 +65,7 @@ pub fn new_partial(config: &Configuration) -> Result<Service, ServiceError> {
 		})
 		.transpose()?;
 
-	let executor = sc_service::new_wasm_executor::<sp_io::SubstrateHostFunctions>(config);
+	let executor = sc_service::new_wasm_executor::<sp_io::SubstrateHostFunctions>(&config.executor);
 
 	let (client, backend, keystore_container, task_manager) =
 		sc_service::new_full_parts::<Block, RuntimeApi, _>(
@@ -160,11 +160,13 @@ pub fn new_full<
 		other: (block_import, grandpa_link, mut telemetry),
 	} = new_partial(&config)?;
 
-	let mut net_config = sc_network::config::FullNetworkConfiguration::<
-		Block,
-		<Block as sp_runtime::traits::Block>::Hash,
-		N,
-	>::new(&config.network);
+	let mut net_config = sc_network::config::FullNetworkConfiguration::<_, _, N>::new(
+		&config.network,
+		config
+			.prometheus_config
+			.as_ref()
+			.map(|cfg| cfg.registry.clone()),
+	);
 	let metrics = N::register_notification_metrics(config.prometheus_registry());
 
 	let peer_store_handle = net_config.peer_store_handle();
@@ -190,7 +192,7 @@ pub fn new_full<
 			spawn_handle: task_manager.spawn_handle(),
 			import_queue,
 			block_announce_validator_builder: None,
-			warp_sync_params: None,
+			warp_sync_config: None,
 			block_relay: None,
 			metrics,
 		})?;
@@ -206,11 +208,10 @@ pub fn new_full<
 		let client = client.clone();
 		let pool = transaction_pool.clone();
 
-		Box::new(move |deny_unsafe, _| {
+		Box::new(move |_| {
 			let deps = crate::rpc::FullDeps {
 				client: client.clone(),
 				pool: pool.clone(),
-				deny_unsafe,
 			};
 
 			crate::rpc::create_full(deps).map_err(Into::into)
