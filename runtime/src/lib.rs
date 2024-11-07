@@ -104,7 +104,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	//   the compatible custom types.
 	spec_version: 100,
 	impl_version: 1,
-	state_version: 1,
+	system_version: 1,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
 };
@@ -256,6 +256,7 @@ impl pallet_balances::Config for Runtime {
 	type FreezeIdentifier = [u8; 8];
 	type MaxFreezes = ();
 	type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
+	type DoneSlashHandler = ();
 }
 
 parameter_types! {
