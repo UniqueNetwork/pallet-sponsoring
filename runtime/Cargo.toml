@@ -28,7 +28,7 @@ pallet-balances = { workspace = true }
 pallet-grandpa = { workspace = true }
 pallet-insecure-randomness-collective-flip = { workspace = true }
 pallet-sudo = { workspace = true }
-pallet-template = { default-features = false, path = '../pallets/template'}
+pallet-template = { default-features = false, path = "../pallets/template" }
 pallet-timestamp = { workspace = true }
 pallet-transaction-payment = { workspace = true }
 pallet-transaction-payment-rpc-runtime-api = { workspace = true }

@@ -50,7 +50,7 @@ substrate-build-script-utils = { version = "9.0.0" }
 name = 'node-template'
 
 [build-dependencies]
-substrate-build-script-utils = { git="https://github.com/paritytech/polkadot-sdk", branch="stable2409" }
+substrate-build-script-utils = { default-features = false, git = "https://github.com/UniqueNetwork/polkadot-sdk", branch = "v20241023" }
 
 [dependencies]
 clap = { workspace = true }
@@ -70,6 +70,7 @@ sc-cli = { workspace = true }
 sc-client-api = { workspace = true }
 sc-consensus = { workspace = true }
 sc-consensus-aura = { workspace = true }
+sc-consensus-manual-seal = { workspace = true }
 sc-executor = { workspace = true }
 sc-consensus-grandpa = { workspace = true }
 sc-keystore = { workspace = true }
