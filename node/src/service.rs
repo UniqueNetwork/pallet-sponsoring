@@ -188,19 +188,6 @@ pub fn new_full<
 
 	let warp_sync_config = None;
 
-	let syncing_strategy = sc_service::build_polkadot_syncing_strategy(
-		config.protocol_id(),
-		config.chain_spec.fork_id(),
-		&mut net_config,
-		warp_sync_config,
-		client.clone(),
-		&task_manager.spawn_handle(),
-		config
-			.prometheus_config
-			.as_ref()
-			.map(|config| &config.registry),
-	)?;
-
 	let (network, system_rpc_tx, tx_handler_controller, network_starter, sync_service) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &config,
@@ -210,7 +197,7 @@ pub fn new_full<
 			spawn_handle: task_manager.spawn_handle(),
 			import_queue,
 			block_announce_validator_builder: None,
-			syncing_strategy,
+			warp_sync_config,
 			block_relay: None,
 			metrics,
 		})?;
