@@ -50,7 +50,7 @@ substrate-build-script-utils = { version = "9.0.0" }
 name = 'node-template'
 
 [build-dependencies]
-substrate-build-script-utils = { default-features = false, git = "https://github.com/UniqueNetwork/polkadot-sdk", branch = "v20241023" }
+substrate-build-script-utils = { default-features = false, version = "11.0.0" }
 
 [dependencies]
 clap = { workspace = true }
