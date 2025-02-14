@@ -135,7 +135,7 @@ where
 	BalanceOf<T>: Send + Sync + From<u64> + FixedPointOperand,
 	T::RuntimeCall: Dispatchable<Info = DispatchInfo, PostInfo = PostDispatchInfo>,
 {
-	const IDENTIFIER: &'static str = "FakeTransactionFinalizer";
+	const IDENTIFIER: &'static str = "ChargeTransactionPayment";
 
 	type Implicit = ();
 
