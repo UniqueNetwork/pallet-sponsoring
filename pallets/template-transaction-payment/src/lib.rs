@@ -101,34 +101,47 @@ where
 			.saturated_into::<TransactionPriority>()
 	}
 
+	fn can_withdraw_fee(
+        &self,
+        who: &T::AccountId,
+        call: &T::RuntimeCall,
+        info: &DispatchInfoOf<T::RuntimeCall>,
+        len: usize,
+	) -> Result<(BalanceOf<T>, T::AccountId), TransactionValidityError> {
+		let tip = self.0;
+		let fee = Self::traditional_fee(len, info, tip);
+
+		// Determine who is paying transaction fee based on ecnomic model
+		// Parse call to extract collection ID and access collection sponsor
+		let sponsor = T::SponsorshipHandler::get_sponsor(who, call);
+		let who_pays_fee = sponsor.unwrap_or_else(|| who.clone());
+
+		<<T as pallet_transaction_payment::Config>::OnChargeTransaction as pallet_transaction_payment::OnChargeTransaction<T>>::can_withdraw_fee(&who_pays_fee, call, info, fee, tip)?;
+
+		Ok((fee, who_pays_fee))
+	}
+
 	#[allow(clippy::type_complexity)]
     fn withdraw_fee(
         &self,
         who: &T::AccountId,
         call: &T::RuntimeCall,
         info: &DispatchInfoOf<T::RuntimeCall>,
-        len: usize,
+		fee: BalanceOf<T>,
 	) -> Result<
 		(
 			BalanceOf<T>,
-			T::AccountId,
 			<<T as pallet_transaction_payment::Config>::OnChargeTransaction as pallet_transaction_payment::OnChargeTransaction<T>>::LiquidityInfo,
 		),
 		TransactionValidityError,
-	>{
+	> {
 		let tip = self.0;
-		let fee = Self::traditional_fee(len, info, tip);
 
-			// Determine who is paying transaction fee based on ecnomic model
-			// Parse call to extract collection ID and access collection sponsor
-			let sponsor = T::SponsorshipHandler::get_sponsor(who, call);
-			let who_pays_fee = sponsor.unwrap_or_else(|| who.clone());
+		let liquidity_info = <<T as pallet_transaction_payment::Config>::OnChargeTransaction as pallet_transaction_payment::OnChargeTransaction<T>>::withdraw_fee(&who, call, info, fee, tip)?;
 
-			let liquidity_info = <<T as pallet_transaction_payment::Config>::OnChargeTransaction as pallet_transaction_payment::OnChargeTransaction<T>>::withdraw_fee(&who_pays_fee, call, info, fee, tip)?;
-
-			Ok((fee, who_pays_fee, liquidity_info))
-		}
+		Ok((fee, liquidity_info))
 	}
+}
 
 impl<T: Config + Send + Sync + TypeInfo> TransactionExtension<T::RuntimeCall> for ChargeTransactionPayment<T>
 where
@@ -148,7 +161,7 @@ where
 		<<T as pallet_transaction_payment::Config>::OnChargeTransaction as pallet_transaction_payment::OnChargeTransaction<T>>::LiquidityInfo,
 	);
 
-	type Val = ();
+	type Val = (BalanceOf<T>, T::AccountId);
 
 	fn weight(&self, _call: &T::RuntimeCall) -> Weight {
 		Weight::zero()
@@ -168,25 +181,23 @@ where
 		let Some(who) = &origin.clone().into_signer() else {
 			return Err(TransactionValidityError::Invalid(InvalidTransaction::BadSigner));
 		};
-		let (fee, _, _) = self.withdraw_fee(who, call, info, len)?;
+		let (final_fee, who_pays_fee) = self.can_withdraw_fee(who, call, info, len)?;
 		Ok((ValidTransaction {
-			priority: Self::get_priority(len, info, fee),
+			priority: Self::get_priority(len, info, final_fee),
 			..Default::default()
-		}, (), origin))
+		}, (final_fee, who_pays_fee), origin))
 	}
 
 	fn prepare(
 		self,
-		_val: Self::Val,
-		origin: &DispatchOriginOf<T::RuntimeCall>,
+		val: Self::Val,
+		_origin: &DispatchOriginOf<T::RuntimeCall>,
 		call: &T::RuntimeCall,
 		info: &DispatchInfoOf<T::RuntimeCall>,
-		len: usize,
+		_len: usize,
 	) -> Result<Self::Pre, TransactionValidityError> {
-		let Some(who) = &origin.clone().into_signer() else {
-			return Err(TransactionValidityError::Invalid(InvalidTransaction::BadSigner));
-		};
-		let (_fee, who_pays_fee, imbalance) = self.withdraw_fee(who, call, info, len)?;
+		let (final_fee, who_pays_fee) = val;
+		let (_fee, imbalance) = self.withdraw_fee(&who_pays_fee, call, info, final_fee)?;
 		Ok((self.0, who_pays_fee, imbalance))
 	}
 
