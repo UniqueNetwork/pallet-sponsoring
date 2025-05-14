@@ -188,7 +188,7 @@ pub fn new_full<
 
 	let warp_sync_config = None;
 
-	let (network, system_rpc_tx, tx_handler_controller, network_starter, sync_service) =
+	let (network, system_rpc_tx, tx_handler_controller, sync_service) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &config,
 			net_config,
@@ -335,6 +335,5 @@ pub fn new_full<
 		);
 	}
 
-	network_starter.start_network();
 	Ok(task_manager)
 }

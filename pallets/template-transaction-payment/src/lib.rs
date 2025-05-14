@@ -10,13 +10,14 @@ pub use std::*;
 
 use codec::{Decode, Encode};
 use frame_support::{
-	dispatch::{DispatchClass, DispatchInfo, PostDispatchInfo}, pallet_prelude::TransactionSource, traits::{Get, OriginTrait}
+	dispatch::{DispatchClass, DispatchInfo, PostDispatchInfo}, pallet_prelude::{DecodeWithMemTracking, TransactionSource}, traits::{Get, OriginTrait}
 };
 pub use pallet::*;
 use pallet_transaction_payment::OnChargeTransaction;
 use scale_info::TypeInfo;
 #[cfg(feature = "std")]
 pub use serde::*;
+
 use sp_runtime::{
 	traits::{
 		DispatchInfoOf, DispatchOriginOf, Dispatchable, Implication, One, PostDispatchInfoOf, SaturatedConversion, Saturating, TransactionExtension, ValidateResult
@@ -47,7 +48,7 @@ mod pallet {
 
 	/// Require the transactor pay for themselves and maybe include a tip to gain additional priority
 	/// in the queue.
-	#[derive(Encode, Decode, Clone, Eq, PartialEq, TypeInfo)]
+	#[derive(Encode, Decode, DecodeWithMemTracking,Clone, Eq, PartialEq, TypeInfo)]
 	pub struct ChargeTransactionPayment<T: Config>(#[codec(compact)] BalanceOf<T>);
 
 	impl<T: Config + Send + Sync> ChargeTransactionPayment<T> {
@@ -224,7 +225,7 @@ where
 /// providers/consumers check, added in https://github.com/paritytech/polkadot-sdk/pull/1578.
 /// TODO: Make this check configurable for the upstream CheckNonce/remove as it gets removed/made configurable in
 /// upstream (Looks like it is planned: https://github.com/paritytech/polkadot-sdk/pull/1578#issuecomment-1754928101)
-#[derive(Encode, Decode, Clone, Eq, PartialEq, TypeInfo)]
+#[derive(Encode, Decode, DecodeWithMemTracking, Clone, Eq, PartialEq, TypeInfo)]
 #[scale_info(skip_type_params(T))]
 pub struct CheckNonce<T: Config>(#[codec(compact)] pub T::Nonce);
 
